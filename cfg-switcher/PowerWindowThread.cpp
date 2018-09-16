@@ -6,6 +6,30 @@
 
 BYTE CurrentACStatus;
 
+unsigned int __stdcall windowsPowerThread(void* data)
+{
+	HWND hiddenWindowHandle = createHiddenWindow();
+
+	// Perform initial power status check
+	CurrentACStatus = getPowerStatus();
+
+	// Poll power status
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		if (msg.message == WM_QUIT)
+			break;
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	// Destroy hidden window
+	DeleteObject(hiddenWindowHandle);
+
+	return 0;
+}
+
 HWND createHiddenWindow() {
 	// Create hidden window
 	WNDCLASS windowClass = { 0 };
@@ -36,13 +60,8 @@ HWND createHiddenWindow() {
 static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_POWERBROADCAST) {
-		SYSTEM_POWER_STATUS lpSystemPowerStatus;
-		if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
-			std::string errMsg = "Error getting system power status: " + GetLastErrorAsString();
-			std::cerr << errMsg << std::endl;
-			return EXIT_FAILURE;
-		}
-		BYTE ACLineStatus = lpSystemPowerStatus.ACLineStatus;
+		
+		BYTE ACLineStatus = getPowerStatus();
 
 		bool ACStatusChanged = CurrentACStatus != ACLineStatus;
 		CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
@@ -53,4 +72,16 @@ static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+BYTE getPowerStatus()
+{
+	SYSTEM_POWER_STATUS lpSystemPowerStatus;
+	if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
+		std::string errMsg = "Error getting system power status: " + GetLastErrorAsString();
+		std::cerr << errMsg << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	return lpSystemPowerStatus.ACLineStatus;
 }

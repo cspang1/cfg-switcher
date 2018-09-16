@@ -1,23 +1,14 @@
 #include <iostream>
 #include <string>
 #include <Windows.h>
+#include <process.h>
 #include "PowerWindowThread.h"
 
 int main() {
-	HWND hiddenWindowHandle = createHiddenWindow();
+	HANDLE PowerWindowThreadHandle = (HANDLE)_beginthreadex(0, 0, &windowsPowerThread, 0, 0, 0);
 
-	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0))
-	{
-		if (msg.message == WM_QUIT)
-		{
-			break;
-		}
-
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	DeleteObject(hiddenWindowHandle);
+	WaitForSingleObject(PowerWindowThreadHandle, INFINITE);
+	CloseHandle(PowerWindowThreadHandle);
 
 	return EXIT_SUCCESS;
 }
