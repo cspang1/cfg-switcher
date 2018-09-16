@@ -22,7 +22,7 @@ int main() {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	DeleteObject(hiddenWindowHandle); //doing it just in case
+	DeleteObject(hiddenWindowHandle);
 
 	return EXIT_SUCCESS;
 }
@@ -34,24 +34,22 @@ HWND createHiddenWindow() {
 	windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	windowClass.hInstance = NULL;
 	windowClass.lpfnWndProc = WindowProc;
-	windowClass.lpszClassName = "Window in Console"; //needs to be the same name
-	//when creating the window as well
+	windowClass.lpszClassName = "Window in Console";
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
-	//also register the class
 	if (!RegisterClass(&windowClass))
 		MessageBox(NULL, "Could not register class", "Error", MB_OK);
 	HWND windowHandle = CreateWindow("Window in Console",
 		NULL,
-		WS_POPUP, //borderless
-		0, //x coordinate of window start point
-		0, //y start point
-		GetSystemMetrics(SM_CXSCREEN), //width of window; this function
-		//retrieves the screen resolution.
-		GetSystemMetrics(SM_CYSCREEN), //height of the window
-		NULL, //handles and such, not needed
+		WS_POPUP,
+		0,
+		0,
+		GetSystemMetrics(SM_CXSCREEN),
+		GetSystemMetrics(SM_CYSCREEN),
 		NULL,
 		NULL,
-		NULL);
+		NULL,
+		NULL
+	);
 
 	return windowHandle;
 }
