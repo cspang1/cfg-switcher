@@ -64,7 +64,8 @@ static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 			return EXIT_FAILURE;
 		}
 		BYTE ACLineStatus = lpSystemPowerStatus.ACLineStatus;
-		std::cout << "ACLineStatus = " << static_cast<int>(ACLineStatus) << std::endl;
+		std::string ACStatusMessage = ACLineStatus ? "PLUGGED IN" : "UNPLUGGED";
+		std::cout << "ACLineStatus = " + ACStatusMessage << std::endl;
 		return 0;
 	}
 
