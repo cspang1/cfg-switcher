@@ -2,13 +2,20 @@
 #include <string>
 #include <Windows.h>
 
-#define _WIN32_WINNT 0x0400
-
 std::string GetLastErrorAsString();
 
 int main() {
+	// Register application to receive power setting event notifications
+	
+	HANDLE hRecipient;
+	LPCGUID PowerSettingGuid;
+	DWORD Flags;
+	
+	RegisterPowerSettingNotification(hRecipient, PowerSettingGuid, Flags);
+	
 	SYSTEM_POWER_STATUS lpSystemPowerStatus;
 	char cont = 'y';
+	
 	while (cont == 'y') {
 		if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
 			std::string errMsg = "Error getting system power status: " + GetLastErrorAsString();
