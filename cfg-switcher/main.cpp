@@ -6,6 +6,8 @@ std::string GetLastErrorAsString();
 static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 HWND createHiddenWindow();
 
+BYTE CurrentACStatus;
+
 int main() {
 	HWND hiddenWindowHandle = createHiddenWindow();
 
@@ -64,7 +66,10 @@ static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 			return EXIT_FAILURE;
 		}
 		BYTE ACLineStatus = lpSystemPowerStatus.ACLineStatus;
-		std::string ACStatusMessage = ACLineStatus ? "PLUGGED IN" : "UNPLUGGED";
+
+		CurrentACStatus = CurrentACStatus == ACLineStatus ? CurrentACStatus : ACLineStatus;
+
+		std::string ACStatusMessage = CurrentACStatus ? "PLUGGED IN" : "UNPLUGGED";
 		std::cout << "ACLineStatus = " + ACStatusMessage << std::endl;
 		return 0;
 	}
