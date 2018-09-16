@@ -4,8 +4,28 @@
 
 std::string GetLastErrorAsString();
 static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+HWND createHiddenWindow();
 
 int main() {
+	HWND hiddenWindowHandle = createHiddenWindow();
+
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		if (msg.message == WM_QUIT)
+		{
+			break;
+		}
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	DeleteObject(hiddenWindowHandle); //doing it just in case
+
+	return EXIT_SUCCESS;
+}
+
+HWND createHiddenWindow() {
 	// Create hidden window
 	WNDCLASS windowClass = { 0 };
 	windowClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
@@ -30,22 +50,8 @@ int main() {
 		NULL,
 		NULL,
 		NULL);
-		
-	MSG msg;
 
-	while (GetMessage(&msg, NULL, 0, 0))
-	{
-		if (msg.message == WM_QUIT)
-		{
-			break;
-		}
-
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	DeleteObject(windowHandle); //doing it just in case
-
-	return EXIT_SUCCESS;
+	return windowHandle;
 }
 
 static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
