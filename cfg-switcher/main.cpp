@@ -7,29 +7,46 @@ std::string GetLastErrorAsString();
 int main() {
 	// Register application to receive power setting event notifications
 	
-	HANDLE hRecipient;
-	LPCGUID PowerSettingGuid;
-	DWORD Flags;
-	
-	RegisterPowerSettingNotification(hRecipient, PowerSettingGuid, Flags);
-	
-	SYSTEM_POWER_STATUS lpSystemPowerStatus;
-	char cont = 'y';
-	
-	while (cont == 'y') {
+	HANDLE hRecipient = GetCurrentProcess();
+	LPCGUID PowerSettingGuid = &GUID_ACDC_POWER_SOURCE;
+	DWORD Flags = DEVICE_NOTIFY_WINDOW_HANDLE;
+	if (RegisterPowerSettingNotification(hRecipient, PowerSettingGuid, Flags) == NULL) {
+		std::string errMsg = "Error registering for power setting notifications: " + GetLastErrorAsString();
+		std::cerr << errMsg << std::endl;
+		return EXIT_FAILURE;
+	}
+		
+	MSG msg = { 0 };
+
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		if (msg.message == WM_QUIT)
+		{
+			break;
+		}
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	return EXIT_SUCCESS;
+}
+
+static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	if (uMsg == WM_POWERBROADCAST) {
+		SYSTEM_POWER_STATUS lpSystemPowerStatus;
 		if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
 			std::string errMsg = "Error getting system power status: " + GetLastErrorAsString();
 			std::cerr << errMsg << std::endl;
 			return EXIT_FAILURE;
 		}
-
 		BYTE ACLineStatus = lpSystemPowerStatus.ACLineStatus;
 		std::cout << "ACLineStatus = " << static_cast<int>(ACLineStatus) << std::endl;
-		std::cout << "Refresh? <y/n>" << std::endl;
-		std::cin >> cont;
+		return 0;
 	}
 
-	return EXIT_SUCCESS;
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
