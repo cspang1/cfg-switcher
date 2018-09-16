@@ -3,20 +3,35 @@
 #include <Windows.h>
 
 std::string GetLastErrorAsString();
+static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int main() {
-	// Register application to receive power setting event notifications
-	
-	HANDLE hRecipient = GetCurrentProcess();
-	LPCGUID PowerSettingGuid = &GUID_ACDC_POWER_SOURCE;
-	DWORD Flags = DEVICE_NOTIFY_WINDOW_HANDLE;
-	if (RegisterPowerSettingNotification(hRecipient, PowerSettingGuid, Flags) == NULL) {
-		std::string errMsg = "Error registering for power setting notifications: " + GetLastErrorAsString();
-		std::cerr << errMsg << std::endl;
-		return EXIT_FAILURE;
-	}
+	// Create hidden window
+	WNDCLASS windowClass = { 0 };
+	windowClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	windowClass.hInstance = NULL;
+	windowClass.lpfnWndProc = WindowProc;
+	windowClass.lpszClassName = "Window in Console"; //needs to be the same name
+	//when creating the window as well
+	windowClass.style = CS_HREDRAW | CS_VREDRAW;
+	//also register the class
+	if (!RegisterClass(&windowClass))
+		MessageBox(NULL, "Could not register class", "Error", MB_OK);
+	HWND windowHandle = CreateWindow("Window in Console",
+		NULL,
+		WS_POPUP, //borderless
+		0, //x coordinate of window start point
+		0, //y start point
+		GetSystemMetrics(SM_CXSCREEN), //width of window; this function
+		//retrieves the screen resolution.
+		GetSystemMetrics(SM_CYSCREEN), //height of the window
+		NULL, //handles and such, not needed
+		NULL,
+		NULL,
+		NULL);
 		
-	MSG msg = { 0 };
+	MSG msg;
 
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
@@ -28,6 +43,7 @@ int main() {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+	DeleteObject(windowHandle); //doing it just in case
 
 	return EXIT_SUCCESS;
 }
