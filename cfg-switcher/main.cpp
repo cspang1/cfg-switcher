@@ -5,7 +5,17 @@
 #include "PowerWindowThread.h"
 
 int main() {
-	HANDLE PowerWindowThreadHandle = (HANDLE)_beginthreadex(0, 0, &windowsPowerThread, 0, 0, 0);
+	HWND hiddenWindowHandle = NULL;
+	HANDLE PowerWindowThreadHandle = (HANDLE)_beginthreadex(0, 0, &windowsPowerThread, (void*)&hiddenWindowHandle, 0, 0);
+
+	char exit = { 0 };
+	std::cout << "Type q to exit..." << std::endl;
+	while (exit != 'q') 
+		std::cin >> exit;
+
+	std::cout << "MAIN: " << hiddenWindowHandle << std::endl;
+
+	//SendMessage(hiddenWindowHandle, WM_DESTROY, NULL, NULL);
 
 	WaitForSingleObject(PowerWindowThreadHandle, INFINITE);
 	CloseHandle(PowerWindowThreadHandle);

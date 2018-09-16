@@ -9,6 +9,11 @@ BYTE CurrentACStatus;
 unsigned int __stdcall windowsPowerThread(void* data)
 {
 	HWND hiddenWindowHandle = createHiddenWindow();
+	HWND hwHandle = *(HWND*)data;
+	hwHandle = hiddenWindowHandle;
+
+	std::cout << "THREAD: " << hiddenWindowHandle << std::endl;
+	std::cout << "THREAD: " << hwHandle << std::endl;
 
 	// Perform initial power status check
 	CurrentACStatus = getPowerStatus();
