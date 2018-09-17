@@ -1,14 +1,15 @@
+#include <iostream>
 #include "CfgSwitchAPI.h"
+#include "tinyxml2.h"
 
 bool initSettings() {
-	if (FILE *file = fopen("settings.xml", "r")) {
-		fclose(file);
-		return true;
+	tinyxml2::XMLDocument settings;
+	bool loaded = settings.LoadFile("settings.xml");
+	if (loaded != tinyxml2::XML_SUCCESS) {
+		createSettings();
 	}
-	else {
-		return false;
-	}
-	return false;
+
+	return true;
 }
 
 bool createSettings() {
