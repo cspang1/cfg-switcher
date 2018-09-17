@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <string>
 #include <iostream>
+#include <atomic>
 #include "PowerWindowThread.h"
 #include "WinUtils.h"
 
@@ -9,11 +10,9 @@ BYTE CurrentACStatus;
 unsigned int __stdcall windowsPowerThread(void* data)
 {
 	HWND hiddenWindowHandle = createHiddenWindow();
-	HWND hwHandle = *(HWND*)data;
-	hwHandle = hiddenWindowHandle;
+	*static_cast<std::atomic<HWND>*>(data) = hiddenWindowHandle;
 
 	std::cout << "THREAD: " << hiddenWindowHandle << std::endl;
-	std::cout << "THREAD: " << hwHandle << std::endl;
 
 	// Perform initial power status check
 	CurrentACStatus = getPowerStatus();
@@ -22,6 +21,8 @@ unsigned int __stdcall windowsPowerThread(void* data)
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
+		std::cout << "MESSAGES!!!!" << std::endl;
+
 		if (msg.message == WM_QUIT)
 			break;
 
@@ -64,16 +65,23 @@ HWND createHiddenWindow() {
 
 static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	if (uMsg == WM_POWERBROADCAST) {
-		
-		BYTE ACLineStatus = getPowerStatus();
-
-		bool ACStatusChanged = CurrentACStatus != ACLineStatus;
-		CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
-		if (ACStatusChanged) {
-			std::cout << "ACLineStatus = " + std::string(CurrentACStatus ? "PLUGGED IN" : "UNPLUGGED") << std::endl;
-		}
-		return 0;
+	BYTE ACLineStatus = { 0 };
+	bool ACStatusChanged = { 0 };
+	switch (uMsg) {
+		case WM_POWERBROADCAST:
+			ACLineStatus = getPowerStatus();
+			ACStatusChanged = CurrentACStatus != ACLineStatus;
+			CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
+			if (ACStatusChanged) {
+				std::cout << "ACLineStatus = " + std::string(CurrentACStatus ? "PLUGGED IN" : "UNPLUGGED") << std::endl;
+			}
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		case WM_CLOSE:
+			DestroyWindow(hWnd);
+			break;
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);

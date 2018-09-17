@@ -18,7 +18,9 @@ int main() {
 
 	std::cout << "MAIN: " << hiddenWindowHandle << std::endl;
 
-	//SendMessage(hiddenWindowHandle, WM_DESTROY, NULL, NULL);
+	SendMessage(hiddenWindowHandle, WM_DESTROY, NULL, NULL);
+
+	std::cout << "DONE?" << std::endl;
 
 	WaitForSingleObject(PowerWindowThreadHandle, INFINITE);
 	CloseHandle(PowerWindowThreadHandle);
