@@ -1,12 +1,15 @@
 #include <iostream>
 #include <string>
+#include <atomic>
 #include <Windows.h>
 #include <process.h>
 #include "PowerWindowThread.h"
 
 int main() {
-	HWND hiddenWindowHandle = NULL;
+	std::atomic<HWND> hiddenWindowHandle(NULL); 
 	HANDLE PowerWindowThreadHandle = (HANDLE)_beginthreadex(0, 0, &windowsPowerThread, (void*)&hiddenWindowHandle, 0, 0);
+
+	while(hiddenWindowHandle == NULL);
 
 	char exit = { 0 };
 	std::cout << "Type q to exit..." << std::endl;
