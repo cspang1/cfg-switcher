@@ -2,8 +2,7 @@
 #include <string>
 
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
-std::string GetLastErrorAsString()
-{
+std::string GetLastErrorAsString() {
 	//Get the error message, if any.
 	DWORD errorMessageID = ::GetLastError();
 	if (errorMessageID == 0)

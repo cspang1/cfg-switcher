@@ -7,8 +7,7 @@
 
 BYTE CurrentACStatus;
 
-unsigned int __stdcall windowsPowerThread(void* data)
-{
+unsigned int __stdcall windowsPowerThread(void* data) {
 	HWND hiddenWindowHandle = createHiddenWindow();
 	*static_cast<std::atomic<HWND>*>(data) = hiddenWindowHandle;
 
@@ -59,8 +58,7 @@ HWND createHiddenWindow() {
 	return windowHandle;
 }
 
-static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	BYTE ACLineStatus = { 0 };
 	bool ACStatusChanged = { 0 };
 	switch (uMsg) {
@@ -83,8 +81,7 @@ static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-BYTE getPowerStatus()
-{
+BYTE getPowerStatus() {
 	SYSTEM_POWER_STATUS lpSystemPowerStatus;
 	if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
 		std::string errMsg = "Error getting system power status: " + GetLastErrorAsString();
