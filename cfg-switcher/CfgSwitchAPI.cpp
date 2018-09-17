@@ -1,6 +1,10 @@
 #include <iostream>
+#include <vector>
 #include "CfgSwitchAPI.h"
 #include "tinyxml2.h"
+#include "game.h"
+
+std::vector<game> games;
 
 void deleteSettingsFile() {
 	remove("settings.xml");
@@ -23,6 +27,8 @@ bool initSettings() {
 		}
 	}
 
+
+
 	return true;
 }
 
@@ -30,11 +36,35 @@ bool createSettingsFile() {
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLNode* rootNode = settings.NewElement("settings");
 	settings.InsertFirstChild(rootNode);
-	tinyxml2::XMLElement* versionNode = settings.NewElement("version");
-	versionNode->SetText(0.1f);
-	rootNode->InsertEndChild(versionNode);
-	tinyxml2::XMLElement* gamesNode = settings.NewElement("games");
-	rootNode->InsertEndChild(gamesNode);
+	tinyxml2::XMLElement* element = settings.NewElement("version");
+	element->SetText(0.1f);
+	rootNode->InsertEndChild(element);
+	element = settings.NewElement("games");
+
+	// TESTING
+
+	tinyxml2::XMLElement* gamesElement = settings.NewElement("game");
+	tinyxml2::XMLElement* gameElement = settings.NewElement("id");
+	gameElement->SetText("GTA V");
+	gamesElement->InsertEndChild(gameElement);
+	gameElement = settings.NewElement("cfgpath");
+	gameElement->SetText("C:\\Users\\unkno\\Documents\\Rockstar Games\\GTA V");
+	gamesElement->InsertEndChild(gameElement);
+	element->InsertEndChild(gamesElement);
+
+	gamesElement = settings.NewElement("game");
+	gameElement = settings.NewElement("id");
+	gameElement->SetText("Borderlands");
+	gamesElement->InsertEndChild(gameElement);
+	gameElement = settings.NewElement("cfgpath");
+	gameElement->SetText("C:\\Users\\unkno\\Documents\\My Games\\Borderlands\\WillowGame\\Config");
+	gamesElement->InsertEndChild(gameElement);
+	element->InsertEndChild(gamesElement);
+
+	rootNode->InsertEndChild(element);
+
+	// TESTING
+
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
 	if (saved != tinyxml2::XML_SUCCESS)
 		return false;
