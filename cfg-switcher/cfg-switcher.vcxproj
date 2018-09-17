@@ -86,9 +86,6 @@
     <ClInclude Include="tinyxml2.h" />
     <ClInclude Include="WinUtils.h" />
   </ItemGroup>
-  <ItemGroup>
-    <Xml Include="settings.xml" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

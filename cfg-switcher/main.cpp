@@ -22,5 +22,7 @@ int main() {
 	WaitForSingleObject(PowerWindowThreadHandle, INFINITE);
 	CloseHandle(PowerWindowThreadHandle);
 
+	deleteSettingsFile();
+
 	return EXIT_SUCCESS;
 }
