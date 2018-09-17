@@ -12,8 +12,6 @@ unsigned int __stdcall windowsPowerThread(void* data)
 	HWND hiddenWindowHandle = createHiddenWindow();
 	*static_cast<std::atomic<HWND>*>(data) = hiddenWindowHandle;
 
-	std::cout << "THREAD: " << hiddenWindowHandle << std::endl;
-
 	// Perform initial power status check
 	CurrentACStatus = getPowerStatus();
 
@@ -21,8 +19,6 @@ unsigned int __stdcall windowsPowerThread(void* data)
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		std::cout << "MESSAGES!!!!" << std::endl;
-
 		if (msg.message == WM_QUIT)
 			break;
 

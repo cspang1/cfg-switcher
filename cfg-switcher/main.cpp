@@ -8,19 +8,12 @@
 int main() {
 	std::atomic<HWND> hiddenWindowHandle(NULL); 
 	HANDLE PowerWindowThreadHandle = (HANDLE)_beginthreadex(0, 0, &windowsPowerThread, (void*)&hiddenWindowHandle, 0, 0);
-
 	while(hiddenWindowHandle == NULL);
 
-	char exit = { 0 };
-	std::cout << "Type q to exit..." << std::endl;
-	while (exit != 'q') 
-		std::cin >> exit;
-
-	std::cout << "MAIN: " << hiddenWindowHandle << std::endl;
+	std::cout << "Press any key to exit..." << std::endl;
+	std::cin.get();
 
 	SendMessage(hiddenWindowHandle, WM_DESTROY, NULL, NULL);
-
-	std::cout << "DONE?" << std::endl;
 
 	WaitForSingleObject(PowerWindowThreadHandle, INFINITE);
 	CloseHandle(PowerWindowThreadHandle);
