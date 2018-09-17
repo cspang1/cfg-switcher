@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <Windows.h>
 #include "CfgSwitchAPI.h"
 #include "tinyxml2.h"
 #include "game.h"
@@ -34,10 +35,21 @@ bool initSettings() {
 		tinyxml2::XMLElement* element = gameElement->FirstChildElement("id");
 		std::string gameID = element->GetText();
 		element = gameElement->FirstChildElement("path");
-		std::string gamepath = element->GetText();
+		std::string gamePath = element->GetText();
+		game tmpGame(gameID, gamePath, "", "");
+		games.push_back(tmpGame);
 		gameElement = gameElement->NextSiblingElement("game");
-		std::cout << gameID << " config is stored in " << gamepath << std::endl;
 	}
+
+	/*DWORD cfgFa = GetFileAttributesA("D:\\cfg-switcher\\cfg-switcher\\configs");
+	if ((cfgFa == INVALID_FILE_ATTRIBUTES) || !(cfgFa & FILE_ATTRIBUTE_DIRECTORY)) {
+		std::cout << "NO CONFIG FOLDER!" << std::endl;
+		if (!createFileStruct()) {
+			std::cerr << "Error creating config file directory structure..." << std::endl;
+			return false;
+		}
+	}*/
+
 	return true;
 }
 
@@ -80,7 +92,7 @@ bool createSettingsFile() {
 	return true;
 }
 
-bool createFileStruct(std::string rootDir) {
+bool createFileStruct() {
 	return false;
 }
 

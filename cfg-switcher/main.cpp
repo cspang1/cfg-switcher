@@ -11,8 +11,8 @@ int main() {
 	HANDLE PowerWindowThreadHandle = (HANDLE)_beginthreadex(0, 0, &windowsPowerThread, (void*)&hiddenWindowHandle, 0, 0);
 	while(hiddenWindowHandle == NULL);
 
-	if (!initSettings()) std::cout << "No settings file yet..." << std::endl;
-	else std::cout << "Settings file found!" << std::endl;
+	if (!initSettings())
+		return EXIT_FAILURE;
 
 	std::cout << "Press any key to exit..." << std::endl;
 	std::cin.get();
