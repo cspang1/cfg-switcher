@@ -27,8 +27,17 @@ bool initSettings() {
 		}
 	}
 
-
-
+	tinyxml2::XMLNode* rootNode = settings.FirstChild();
+	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
+	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
+	while (gameElement != nullptr) {
+		tinyxml2::XMLElement* element = gameElement->FirstChildElement("id");
+		std::string gameID = element->GetText();
+		element = gameElement->FirstChildElement("path");
+		std::string gamepath = element->GetText();
+		gameElement = gameElement->NextSiblingElement("game");
+		std::cout << gameID << " config is stored in " << gamepath << std::endl;
+	}
 	return true;
 }
 
@@ -47,7 +56,7 @@ bool createSettingsFile() {
 	tinyxml2::XMLElement* gameElement = settings.NewElement("id");
 	gameElement->SetText("GTA V");
 	gamesElement->InsertEndChild(gameElement);
-	gameElement = settings.NewElement("cfgpath");
+	gameElement = settings.NewElement("path");
 	gameElement->SetText("C:\\Users\\unkno\\Documents\\Rockstar Games\\GTA V");
 	gamesElement->InsertEndChild(gameElement);
 	element->InsertEndChild(gamesElement);
@@ -56,7 +65,7 @@ bool createSettingsFile() {
 	gameElement = settings.NewElement("id");
 	gameElement->SetText("Borderlands");
 	gamesElement->InsertEndChild(gameElement);
-	gameElement = settings.NewElement("cfgpath");
+	gameElement = settings.NewElement("path");
 	gameElement->SetText("C:\\Users\\unkno\\Documents\\My Games\\Borderlands\\WillowGame\\Config");
 	gamesElement->InsertEndChild(gameElement);
 	element->InsertEndChild(gamesElement);
