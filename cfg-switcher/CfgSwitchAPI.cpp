@@ -1,8 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <Windows.h>
-#include <shlobj.h>
-#include <sstream>
 #include "WinUtils.h"
 #include "CfgSwitchAPI.h"
 #include "tinyxml2.h"
@@ -65,29 +63,6 @@ bool createSettingsFile() {
 	element = settings.NewElement("path");
 	element->SetText("D:\\cfg-switcher\\cfg-switcher");
 	rootNode->InsertEndChild(element);
-
-	/* TESTING
-
-	tinyxml2::XMLElement* gamesElement = settings.NewElement("game");
-	tinyxml2::XMLElement* gameElement = settings.NewElement("id");
-	gameElement->SetText("GTA V");
-	gamesElement->InsertEndChild(gameElement);
-	gameElement = settings.NewElement("path");
-	gameElement->SetText("C:\\Users\\unkno\\Documents\\Rockstar Games\\GTA V");
-	gamesElement->InsertEndChild(gameElement);
-	element->InsertEndChild(gamesElement);
-
-	gamesElement = settings.NewElement("game");
-	gameElement = settings.NewElement("id");
-	gameElement->SetText("Borderlands");
-	gamesElement->InsertEndChild(gameElement);
-	gameElement = settings.NewElement("path");
-	gameElement->SetText("C:\\Users\\unkno\\Documents\\My Games\\Borderlands\\WillowGame\\Config");
-	gamesElement->InsertEndChild(gameElement);
-	element->InsertEndChild(gamesElement);
-
-	// TESTING*/
-
 	rootNode->InsertEndChild(settings.NewElement("games"));
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
 	if (saved != tinyxml2::XML_SUCCESS)
