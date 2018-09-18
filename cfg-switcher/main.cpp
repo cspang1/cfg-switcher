@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <iostream>
 #include <string>
 #include <Windows.h>
@@ -48,14 +50,56 @@ int main() {
 	}
 
 	// Attempt to initialize settings
-	if (!initSettings())
+	if (!initSettings()) {
+		Sleep(TIMEOUT);
 		return EXIT_FAILURE;
+	}
 
 	// Aggregate process handles
 	HANDLE ProcHandles[NUM_HANDLES] = {PowerEvent, CloseEvent, WindowThread, SwitchThread};
 
-	std::cout << "Press any key to exit..." << std::endl;
-	std::cin.get();
+	int opt = 0;
+	bool cont = true;
+
+	std::cout << "Config Switcher successfully started!" << std::endl;
+
+	std::vector<std::string> options = {
+		"ADD GAME",
+		"EXIT"
+	};
+
+	while (cont) {
+		std::cout << std::endl << "CHOOSE AN OPTION" << std::endl;
+		std::cout << "----------------" << std::endl;
+		for (int optInd = 0; optInd < options.size(); optInd++)
+			std::cout << optInd + 1 << ":  " << options[optInd] << std::endl;
+		std::cout << "- ";
+
+		while (!(std::cin >> opt)) {
+			std::cerr << "Error: Invalid input; expecting option number" << std::endl;
+			std::cout << "wut: " << opt << std::endl;
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		}
+
+		std::string gameID;
+		switch (opt) {
+		case 1: // Add game
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			std::cout << "Enter game name: ";
+			getline(std::cin, gameID);
+			std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
+			if (addGame(gameID))
+				std::cout << "Successfully added " << gameID << " to configuration!" << std::endl;
+			break;
+		case 2: // Exit
+			cont = false;
+			break;
+		default:
+			std::cerr << "Error: Invalid option" << std::endl;
+		}
+	}
 
 	// Destroy message window to terminate thread
 	SendMessage(pwhFuture.get(), WM_DESTROY, NULL, NULL);
@@ -78,8 +122,8 @@ int main() {
 			return 1;
 	}
 
-	// DEBUG: Delete settings file
-	deleteSettingsFile();
+	// DEBUG
+	//deleteSettingsFile();
 
 	return EXIT_SUCCESS;
 }

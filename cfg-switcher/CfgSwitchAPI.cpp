@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <Windows.h>
+#include <shlobj.h>
+#include <sstream>
+#include "WinUtils.h"
 #include "CfgSwitchAPI.h"
 #include "tinyxml2.h"
 #include "game.h"
@@ -17,13 +20,13 @@ bool initSettings() {
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
 		if (!createSettingsFile()) {
-			std::cerr << "Error creating new settings file..." << std::endl;
+			std::cerr << "Error creating new settings file" << std::endl;
 			return false;
 		}
 		else {
 			loaded = settings.LoadFile("settings.xml");
 			if (loaded != tinyxml2::XML_SUCCESS) {
-				std::cerr << "Error loading settings file..." << std::endl;
+				std::cerr << "Error loading settings file" << std::endl;
 				return false;
 			}
 		}
@@ -39,19 +42,15 @@ bool initSettings() {
 		std::string gameID = element->GetText();
 		element = gameElement->FirstChildElement("path");
 		std::string gamePath = element->GetText();
-		game tmpGame(gameID, gamePath, "", "");
-		games.push_back(tmpGame);
+		games.push_back(game(gameID, gamePath, "", ""));
 		gameElement = gameElement->NextSiblingElement("game");
 	}
 
-	/*DWORD cfgFa = GetFileAttributesA("D:\\cfg-switcher\\cfg-switcher\\configs");
+	DWORD cfgFa = GetFileAttributesA(std::string(path + "\\configs").c_str());
 	if ((cfgFa == INVALID_FILE_ATTRIBUTES) || !(cfgFa & FILE_ATTRIBUTE_DIRECTORY)) {
-		std::cout << "NO CONFIG FOLDER!" << std::endl;
-		if (!createFileStruct()) {
-			std::cerr << "Error creating config file directory structure..." << std::endl;
+		if (!createFileStruct())
 			return false;
-		}
-	}*/
+	}
 
 	return true;
 }
@@ -66,9 +65,8 @@ bool createSettingsFile() {
 	element = settings.NewElement("path");
 	element->SetText("D:\\cfg-switcher\\cfg-switcher");
 	rootNode->InsertEndChild(element);
-	element = settings.NewElement("games");
 
-	// TESTING
+	/* TESTING
 
 	tinyxml2::XMLElement* gamesElement = settings.NewElement("game");
 	tinyxml2::XMLElement* gameElement = settings.NewElement("id");
@@ -88,10 +86,9 @@ bool createSettingsFile() {
 	gamesElement->InsertEndChild(gameElement);
 	element->InsertEndChild(gamesElement);
 
-	rootNode->InsertEndChild(element);
+	// TESTING*/
 
-	// TESTING
-
+	rootNode->InsertEndChild(settings.NewElement("games"));
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
 	if (saved != tinyxml2::XML_SUCCESS)
 		return false;
@@ -99,7 +96,50 @@ bool createSettingsFile() {
 }
 
 bool createFileStruct() {
-	return false;
+	std::string cfgPath(path + "\\configs");
+	if (!CreateDirectory(cfgPath.c_str(), NULL)) {
+		std::cerr << "Error creating configs directory: " + GetLastErrorAsString() << std::endl;
+		return false;
+	}
+	for (game &g : games) {
+		std::string gamePath(cfgPath + "\\" + g.ID);
+		bool gpdCreate = CreateDirectory(gamePath.c_str(), NULL);
+		bool gmdCreate = CreateDirectory(std::string(gamePath + "\\main").c_str(), NULL);
+		bool gbdCreate = CreateDirectory(std::string(gamePath + "\\battery").c_str(), NULL);
+		if (!gpdCreate || !gmdCreate || !gbdCreate) {
+			std::cerr << "Error creating games directories: " + GetLastErrorAsString() << std::endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool addGame(std::string gameID) {
+	tinyxml2::XMLDocument settings;
+	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
+	if (loaded != tinyxml2::XML_SUCCESS) {
+		std::cerr << "Error loading settings file" << std::endl;
+		return false;
+	}
+	tinyxml2::XMLNode* rootNode = settings.FirstChild();
+	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
+	tinyxml2::XMLElement* gameElement = settings.NewElement("game");
+	tinyxml2::XMLElement* element = settings.NewElement("id");
+	element->SetText(gameID.c_str());
+	gameElement->InsertEndChild(element);
+	element = settings.NewElement("path");
+	std::string path = BrowseFolder("Select directory containing " + gameID + "'s config files...");
+	element->SetText(path.c_str());
+	gameElement->InsertEndChild(element);
+	gamesElement->InsertEndChild(gameElement);
+	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
+	if (saved != tinyxml2::XML_SUCCESS) {
+		std::cerr << "Error: Unable to add game to configuration" << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 bool initGames() {
