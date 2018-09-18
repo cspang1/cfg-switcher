@@ -73,6 +73,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CfgSwitchAPI.cpp" />
+    <ClCompile Include="ConfigSwitchThread.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PowerWindowThread.cpp" />
@@ -81,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CfgSwitchAPI.h" />
+    <ClInclude Include="ConfigSwitchThread.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="PowerWindowThread.h" />
     <ClInclude Include="tinyxml2.h" />
