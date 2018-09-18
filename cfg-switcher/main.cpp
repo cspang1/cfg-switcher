@@ -58,9 +58,6 @@ int main() {
 	// Aggregate process handles
 	HANDLE ProcHandles[NUM_HANDLES] = {PowerEvent, CloseEvent, WindowThread, SwitchThread};
 
-	int opt = 0;
-	bool cont = true;
-
 	std::cout << "Config Switcher successfully started!" << std::endl;
 
 	std::vector<std::string> options = {
@@ -68,11 +65,17 @@ int main() {
 		"EXIT"
 	};
 
+	int opt = 0;
+	bool cont = true;
+	bool restReq = false;
+
 	while (cont) {
 		std::cout << std::endl << "CHOOSE AN OPTION" << std::endl;
 		std::cout << "----------------" << std::endl;
 		for (int optInd = 0; optInd < options.size(); optInd++)
 			std::cout << optInd + 1 << ":  " << options[optInd] << std::endl;
+		if (restReq)
+			std::cout << "* RESTART REQUIRED *" << std::endl;
 		std::cout << "- ";
 
 		while (!(std::cin >> opt)) {
@@ -90,8 +93,13 @@ int main() {
 			std::cout << "Enter game name: ";
 			getline(std::cin, gameID);
 			std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
-			if (addGame(gameID))
+			if (addGame(gameID)) {
+				std::cout << std::endl << "===================================================" << std::endl;
 				std::cout << "Successfully added " << gameID << " to configuration!" << std::endl;
+				std::cout << "Restart Config Switcher for changes to take effect" << std::endl;
+				std::cout << "===================================================" << std::endl;
+				restReq = true;
+			}
 			break;
 		case 2: // Exit
 			cont = false;
