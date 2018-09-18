@@ -34,6 +34,8 @@ unsigned int __stdcall configSwitchThread(void*) {
 			break;
 		case WAIT_OBJECT_0 + 1:
 			ResetEvent(EventHandles[1]);
+			for (HANDLE& handle : EventHandles)
+				CloseHandle(handle);
 			return 0;
 			break;
 		default:
@@ -42,6 +44,9 @@ unsigned int __stdcall configSwitchThread(void*) {
 		}
 	}
 	
+	for (HANDLE& handle : EventHandles)
+		CloseHandle(handle);
+
 	return 0;
 }
 

@@ -6,6 +6,7 @@
 #include "game.h"
 
 std::vector<game> games;
+std::string path;
 
 void deleteSettingsFile() {
 	remove("settings.xml");
@@ -29,6 +30,8 @@ bool initSettings() {
 	}
 
 	tinyxml2::XMLNode* rootNode = settings.FirstChild();
+	tinyxml2::XMLElement* pathElement = rootNode->FirstChildElement("path");
+	path = pathElement->GetText();
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
 	while (gameElement != nullptr) {
@@ -59,6 +62,9 @@ bool createSettingsFile() {
 	settings.InsertFirstChild(rootNode);
 	tinyxml2::XMLElement* element = settings.NewElement("version");
 	element->SetText(0.1f);
+	rootNode->InsertEndChild(element);
+	element = settings.NewElement("path");
+	element->SetText("D:\\cfg-switcher\\cfg-switcher");
 	rootNode->InsertEndChild(element);
 	element = settings.NewElement("games");
 
