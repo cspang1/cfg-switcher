@@ -4,4 +4,3 @@
 unsigned int __stdcall windowsPowerThread(void*);
 HWND createHiddenWindow();
 static LRESULT WINAPI WindowProc(HWND, UINT, WPARAM, LPARAM);
-BYTE getPowerStatus();

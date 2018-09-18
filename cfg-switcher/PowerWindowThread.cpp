@@ -5,14 +5,23 @@
 #include "PowerWindowThread.h"
 #include "WinUtils.h"
 
-BYTE CurrentACStatus;
+HANDLE PowerEvent;
+HANDLE CloseEvent;
 
 unsigned int __stdcall windowsPowerThread(void* data) {
 	HWND hiddenWindowHandle = createHiddenWindow();
 	*static_cast<std::atomic<HWND>*>(data) = hiddenWindowHandle;
 
-	// Perform initial power status check
-	CurrentACStatus = getPowerStatus();
+	// Get power event handle
+	PowerEvent = OpenEvent(EVENT_ALL_ACCESS, false, TEXT("PowerEvent"));
+	ResetEvent(PowerEvent);
+	CloseEvent = OpenEvent(EVENT_ALL_ACCESS, false, TEXT("CloseEvent"));
+	ResetEvent(CloseEvent);
+
+	if (!PowerEvent || !CloseEvent) {
+		std::cerr << "Error creating event handles: " + GetLastErrorAsString() << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	// Poll power status
 	MSG msg;
@@ -27,6 +36,9 @@ unsigned int __stdcall windowsPowerThread(void* data) {
 
 	// Destroy hidden window
 	DeleteObject(hiddenWindowHandle);
+
+	// Signal API thread to terminate
+	SetEvent(CloseEvent);
 
 	return 0;
 }
@@ -59,16 +71,9 @@ HWND createHiddenWindow() {
 }
 
 static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	BYTE ACLineStatus = { 0 };
-	bool ACStatusChanged = { 0 };
 	switch (uMsg) {
 		case WM_POWERBROADCAST:
-			ACLineStatus = getPowerStatus();
-			ACStatusChanged = CurrentACStatus != ACLineStatus;
-			CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
-			if (ACStatusChanged) {
-				std::cout << "ACLineStatus = " + std::string(CurrentACStatus ? "PLUGGED IN" : "UNPLUGGED") << std::endl;
-			}
+			SetEvent(PowerEvent);
 			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
@@ -79,15 +84,4 @@ static LRESULT WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
-}
-
-BYTE getPowerStatus() {
-	SYSTEM_POWER_STATUS lpSystemPowerStatus;
-	if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
-		std::string errMsg = "Error getting system power status: " + GetLastErrorAsString();
-		std::cerr << errMsg << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	return lpSystemPowerStatus.ACLineStatus;
 }
