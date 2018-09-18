@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <atomic>
+#include <future>
 #include "PowerWindowThread.h"
 #include "WinUtils.h"
 
@@ -10,7 +11,7 @@ HANDLE CloseEvent;
 
 unsigned int __stdcall windowsPowerThread(void* data) {
 	HWND hiddenWindowHandle = createHiddenWindow();
-	*static_cast<std::atomic<HWND>*>(data) = hiddenWindowHandle;
+	(*static_cast<std::promise<HWND>*>(data)).set_value(hiddenWindowHandle);
 
 	// Get power event handle
 	PowerEvent = OpenEvent(EVENT_ALL_ACCESS, false, TEXT("PowerEvent"));
