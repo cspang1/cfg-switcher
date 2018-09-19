@@ -19,11 +19,13 @@ const int NUM_HANDLES = NUM_THREAD_HANDLES + NUM_EVENT_HANDLES;
 const int TIMEOUT = 5000;
 
 int main() {
+	Settings settings;
+
 	// Attempt to initialize settings
-	if (!initSettings())
+	if (!settings.initSettings())
 		return EXIT_FAILURE;
 
-	std::vector<game> games = getGames();
+	std::vector<game> games = settings.getGames();
 	if (games.empty()) {
 		std::cout << "*********************************" << std::endl;
 		std::cout << "* NO GAMES CURRENTLY CONFIGURED *" << std::endl;
@@ -108,7 +110,7 @@ int main() {
 			std::cout << "Enter game name: ";
 			getline(std::cin, gameID);
 			std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
-			if (addGame(gameID)) {
+			if (settings.addGame(gameID)) {
 				std::cout << std::endl << "===================================================" << std::endl;
 				std::cout << "Successfully added " << gameID << " to configuration!" << std::endl;
 				std::cout << "Restart Config Switcher for changes to take effect" << std::endl;

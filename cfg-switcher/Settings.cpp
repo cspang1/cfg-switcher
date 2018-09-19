@@ -7,14 +7,11 @@
 #include "game.h"
 #include "Settings.h"
 
-std::vector<game> games;
-std::string path;
-
-void deleteSettingsFile() {
+void Settings::deleteSettingsFile() {
 	remove("settings.xml");
 }
 
-bool initSettings() {
+bool Settings::initSettings() {
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
@@ -54,7 +51,7 @@ bool initSettings() {
 	return true;
 }
 
-bool createSettingsFile() {
+bool Settings::createSettingsFile() {
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLNode* rootNode = settings.NewElement("settings");
 	settings.InsertFirstChild(rootNode);
@@ -71,7 +68,7 @@ bool createSettingsFile() {
 	return true;
 }
 
-bool createFileStruct() {
+bool Settings::createFileStruct() {
 	std::string cfgPath(path + "\\configs");
 	if (!CreateDirectory(cfgPath.c_str(), NULL)) {
 		std::cerr << "Error creating configs directory: " + GetLastErrorAsString() << std::endl;
@@ -91,9 +88,13 @@ bool createFileStruct() {
 	return true;
 }
 
-bool addGame(std::string gameID) {
+bool Settings::addGame(std::string gameID) {
 	if (gameExists(gameID)) {
 		std::cerr << "Error: " << gameID << " already exists in configuration" << std::endl;
+		return false;
+	}
+	else if (gameID.empty() || (gameID.find_first_not_of(' ') == std::string::npos)) {
+		std::cerr << "Error: Game ID cannot be empty" << std::endl;
 		return false;
 	}
 
@@ -127,7 +128,7 @@ bool addGame(std::string gameID) {
 	return true;
 }
 
-bool gameExists(std::string gameID) {
+bool Settings::gameExists(std::string gameID) {
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
@@ -148,6 +149,6 @@ bool gameExists(std::string gameID) {
 	return false;
 }
 
-std::vector<game> getGames() {
+std::vector<game> Settings::getGames() {
 	return games;
 }
