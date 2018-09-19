@@ -5,10 +5,13 @@
 #include <Windows.h>
 #include <process.h>
 #include <future>
+#include <vector>
 #include "WinUtils.h"
 #include "PowerWindowThread.h"
 #include "ConfigSwitchThread.h"
 #include "CfgSwitchAPI.h"
+#include "Settings.h"
+#include "game.h"
 
 const int NUM_THREAD_HANDLES = 2;
 const int NUM_EVENT_HANDLES = 2;
@@ -16,6 +19,17 @@ const int NUM_HANDLES = NUM_THREAD_HANDLES + NUM_EVENT_HANDLES;
 const int TIMEOUT = 5000;
 
 int main() {
+	// Attempt to initialize settings
+	if (!initSettings())
+		return EXIT_FAILURE;
+
+	std::vector<game> games = getGames();
+	if (games.empty()) {
+		std::cout << "*********************************" << std::endl;
+		std::cout << "* NO GAMES CURRENTLY CONFIGURED *" << std::endl;
+		std::cout << "*********************************" << std::endl;
+	}
+
 	// Initialize power and close events
 	HANDLE PowerEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("PowerEvent"));
 	HANDLE CloseEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("CloseEvent"));
@@ -49,16 +63,12 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	// Attempt to initialize settings
-	if (!initSettings()) {
-		Sleep(TIMEOUT);
-		return EXIT_FAILURE;
-	}
-
 	// Aggregate process handles
 	HANDLE ProcHandles[NUM_HANDLES] = {PowerEvent, CloseEvent, WindowThread, SwitchThread};
 
+	std::cout << "=====================================" << std::endl;
 	std::cout << "Config Switcher successfully started!" << std::endl;
+	std::cout << "=====================================" << std::endl;
 
 	std::vector<std::string> options = {
 		"ADD GAME",
@@ -74,13 +84,15 @@ int main() {
 		std::cout << "----------------" << std::endl;
 		for (int optInd = 0; optInd < options.size(); optInd++)
 			std::cout << optInd + 1 << ":  " << options[optInd] << std::endl;
-		if (restReq)
+		if (restReq) {
+			std::cout << "********************" << std::endl;
 			std::cout << "* RESTART REQUIRED *" << std::endl;
+			std::cout << "********************" << std::endl;
+		}
 		std::cout << "- ";
 
 		while (!(std::cin >> opt)) {
 			std::cerr << "Error: Invalid input; expecting option number" << std::endl;
-			std::cout << "wut: " << opt << std::endl;
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		}
@@ -88,6 +100,9 @@ int main() {
 		std::string gameID;
 		switch (opt) {
 		case 1: // Add game
+			std::cout << std::endl << "========" << std::endl;
+			std::cout << "ADD GAME" << std::endl;
+			std::cout << "========" << std::endl;
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 			std::cout << "Enter game name: ";

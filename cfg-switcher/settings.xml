@@ -1,0 +1,10 @@
+<settings>
+    <version>0.1</version>
+    <path>D:\cfg-switcher\cfg-switcher</path>
+    <games>
+        <game>
+            <id>GTA MMXVI</id>
+            <path>C:\Users\unkno\Desktop</path>
+        </game>
+    </games>
+</settings>
