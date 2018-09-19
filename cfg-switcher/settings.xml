@@ -3,7 +3,15 @@
     <path>D:\cfg-switcher\cfg-switcher</path>
     <games>
         <game>
-            <id>GTA MMXVI</id>
+            <id>test</id>
+            <path>C:\Users\unkno\Desktop</path>
+        </game>
+        <game>
+            <id>GTA V</id>
+            <path>C:\Users\unkno\Documents\Rockstar Games\GTA V</path>
+        </game>
+        <game>
+            <id>a</id>
             <path>C:\Users\unkno\Desktop</path>
         </game>
     </games>

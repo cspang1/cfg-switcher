@@ -92,6 +92,11 @@ bool createFileStruct() {
 }
 
 bool addGame(std::string gameID) {
+	if (gameExists(gameID)) {
+		std::cerr << "Error: " << gameID << " already exists in configuration" << std::endl;
+		return false;
+	}
+
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
@@ -106,6 +111,10 @@ bool addGame(std::string gameID) {
 	gameElement->InsertEndChild(element);
 	element = settings.NewElement("path");
 	std::string path = BrowseFolder("Select directory containing the " + gameID + " config files...");
+	if (path.empty()) {
+		std::cerr << "Error: Valid directory path required" << std::endl;
+		return false;
+	}
 	element->SetText(path.c_str());
 	gameElement->InsertEndChild(element);
 	gamesElement->InsertEndChild(gameElement);
@@ -116,6 +125,27 @@ bool addGame(std::string gameID) {
 	}
 
 	return true;
+}
+
+bool gameExists(std::string gameID) {
+	tinyxml2::XMLDocument settings;
+	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
+	if (loaded != tinyxml2::XML_SUCCESS) {
+		std::cerr << "Error loading settings file" << std::endl;
+		return false;
+	}
+	tinyxml2::XMLNode* rootNode = settings.FirstChild();
+	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
+	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
+	tinyxml2::XMLElement* idElement;
+	while (gameElement != nullptr) {
+		idElement = gameElement->FirstChildElement("id");
+		if (!gameID.compare(idElement->GetText()))
+			return true;
+		gameElement = gameElement->NextSiblingElement("game");
+	}
+
+	return false;
 }
 
 std::vector<game> getGames() {

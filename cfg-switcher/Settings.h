@@ -8,4 +8,5 @@ bool initSettings();
 bool createSettingsFile();
 bool createFileStruct();
 bool addGame(std::string gameID);
+bool gameExists(std::string gameID);
 std::vector<game> getGames();
