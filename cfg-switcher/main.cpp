@@ -46,7 +46,7 @@ int main() {
 
 	// Initialize message window and config switch threads
 	HANDLE WindowThread = (HANDLE)_beginthreadex(0, 0, &windowsPowerThread, (void *)&pwhPromise, 0, 0);
-	HANDLE SwitchThread = (HANDLE)_beginthreadex(0, 0, &configSwitchThread, 0, 0, 0);
+	HANDLE SwitchThread = (HANDLE)_beginthreadex(0, 0, &configSwitchThread, (void *)&games, 0, 0);
 	HANDLE ThreadHandles[NUM_THREAD_HANDLES] = { WindowThread, SwitchThread };
 	for (HANDLE &th : ThreadHandles) {
 		if (!th) {

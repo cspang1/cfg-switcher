@@ -1,14 +1,18 @@
 #include <Windows.h>
 #include <string>
 #include <iostream>
+#include <vector>
 #include "ConfigSwitchThread.h"
 #include "CfgSwitchAPI.h"
 #include "WinUtils.h"
+#include "game.h"
 
 const int NUM_HANDLES = 2;
 BYTE CurrentACStatus;
 
-unsigned int __stdcall configSwitchThread(void*) {
+unsigned int __stdcall configSwitchThread(void* data) {
+	std::vector<game>& gees = *(std::vector<game>*)data;
+
 	// Perform initial power status check
 	CurrentACStatus = getPowerStatus();
 
