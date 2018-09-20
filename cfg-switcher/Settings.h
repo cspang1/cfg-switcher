@@ -18,5 +18,5 @@ public:
 	bool gameExists(std::string gameID);
 	bool setConfigs(powerState tgtState);
 	std::vector<game> unsetGames();
-	std::vector<game> getGames();
+	std::vector<game>& getGames();
 };

@@ -25,7 +25,7 @@ int main() {
 	if (!settings.initSettings())
 		return EXIT_FAILURE;
 
-	std::vector<game> games = settings.getGames();
+	std::vector<game>& games = settings.getGames();
 	if (games.empty()) {
 		std::cout << "*********************************" << std::endl;
 		std::cout << "* NO GAMES CURRENTLY CONFIGURED *" << std::endl;
@@ -142,7 +142,7 @@ int main() {
 			std::cout << std::endl << "=============" << std::endl;
 			std::cout << "CURRENT GAMES" << std::endl;
 			std::cout << "=============" << std::endl;
-			for (game &g : settings.getGames()) {
+			for (game &g : games) {
 				std::cout << " - " << g.ID << std::endl;
 				std::cout << "\tPath: " << g.cfgPath << std::endl;
 				std::cout << "\tMain Config [" << (g.mainCfgSet ? "X" : " ") << "]" << std::endl;
