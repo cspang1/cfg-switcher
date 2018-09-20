@@ -48,7 +48,6 @@ bool Settings::initSettings() {
 		mainCfgSet = element->BoolAttribute("value");
 		element = gameElement->FirstChildElement("battcfgset");
 		battCfgSet = element->BoolAttribute("value");
-		cfgsSet(); // PERFORM CHECK FOR MAIN/BATT SETTINGS FILES HERE
 		games.push_back(game(gameID, gamePath, mainCfgSet, battCfgSet));
 		gameElement = gameElement->NextSiblingElement("game");
 	}
@@ -103,10 +102,6 @@ bool Settings::updateFileStruct() {
 	}
 
 	return true;
-}
-
-bool Settings::cfgsSet() {
-	return false;
 }
 
 bool Settings::addGame(std::string gameID, std::string gameCfgPath) {

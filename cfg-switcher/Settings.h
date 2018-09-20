@@ -14,7 +14,6 @@ public:
 	bool createSettingsFile();
 	bool createFileStruct();
 	bool updateFileStruct();
-	bool cfgsSet();
 	bool addGame(std::string gameID, std::string gamePath);
 	bool gameExists(std::string gameID);
 	bool setConfigs(powerState tgtState);
