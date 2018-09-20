@@ -11,7 +11,7 @@ public:
 	bool initSettings();
 	bool createSettingsFile();
 	bool createFileStruct();
-	bool addGame(std::string gameID);
+	bool addGame(std::string gameID, std::string gamePath);
 	bool gameExists(std::string gameID);
 	std::vector<game> getGames();
 };

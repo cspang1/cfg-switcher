@@ -100,6 +100,7 @@ int main() {
 		}
 
 		std::string gameID;
+		std::string cfgPath;
 		switch (opt) {
 		case 1: // Add game
 			std::cout << std::endl << "========" << std::endl;
@@ -109,8 +110,25 @@ int main() {
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 			std::cout << "Enter game name: ";
 			getline(std::cin, gameID);
-			std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
-			if (settings.addGame(gameID)) {
+			if (settings.gameExists(gameID)) {
+				std::cerr << "Error: " << gameID << " already exists in configuration" << std::endl;
+				break;
+			}
+			else if (gameID.empty() || (gameID.find_first_not_of(' ') == std::string::npos)) {
+				std::cerr << "Error: Game ID cannot be empty" << std::endl;
+				break;
+			}
+			std::cout << "Enter path to game config file: ";
+			getline(std::cin, cfgPath);
+			GetFileAttributes(cfgPath.c_str());
+			if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(cfgPath.c_str()) && GetLastError() == ERROR_FILE_NOT_FOUND)
+			{
+				std::cerr << "Error: Specified config file does not exist" << std::endl;
+				break;
+			}
+			//std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
+			//path = BrowseFile("Select directory containing the " + gameID + " config files...");
+			if (settings.addGame(gameID, cfgPath)) {
 				std::cout << std::endl << "===================================================" << std::endl;
 				std::cout << "Successfully added " << gameID << " to configuration!" << std::endl;
 				std::cout << "Restart Config Switcher for changes to take effect" << std::endl;
@@ -148,7 +166,7 @@ int main() {
 	}
 
 	// DEBUG
-	//deleteSettingsFile();
+	//settings.deleteSettingsFile();
 
 	return EXIT_SUCCESS;
 }

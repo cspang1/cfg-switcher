@@ -88,16 +88,7 @@ bool Settings::createFileStruct() {
 	return true;
 }
 
-bool Settings::addGame(std::string gameID) {
-	if (gameExists(gameID)) {
-		std::cerr << "Error: " << gameID << " already exists in configuration" << std::endl;
-		return false;
-	}
-	else if (gameID.empty() || (gameID.find_first_not_of(' ') == std::string::npos)) {
-		std::cerr << "Error: Game ID cannot be empty" << std::endl;
-		return false;
-	}
-
+bool Settings::addGame(std::string gameID, std::string gamePath) {
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
@@ -111,12 +102,11 @@ bool Settings::addGame(std::string gameID) {
 	element->SetText(gameID.c_str());
 	gameElement->InsertEndChild(element);
 	element = settings.NewElement("path");
-	std::string path = BrowseFolder("Select directory containing the " + gameID + " config files...");
-	if (path.empty()) {
-		std::cerr << "Error: Valid directory path required" << std::endl;
+	if (gamePath.empty()) {
+		std::cerr << "Error: Valid file path required" << std::endl;
 		return false;
 	}
-	element->SetText(path.c_str());
+	element->SetText(gamePath.c_str());
 	gameElement->InsertEndChild(element);
 	gamesElement->InsertEndChild(gameElement);
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");

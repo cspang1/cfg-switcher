@@ -2,6 +2,7 @@
 #include <string>
 #include <shlobj.h>
 #include <sstream>
+#include <commdlg.h>
 
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
 std::string GetLastErrorAsString() {
@@ -67,4 +68,23 @@ std::string BrowseFolder(std::string promptStr)
 	}
 
 	return "";
+}
+
+std::string BrowseFile(std::string prompt) {
+	OPENFILENAME ofn;
+	::memset(&ofn, 0, sizeof(ofn));
+	char f1[MAX_PATH];
+	f1[0] = 0;
+	ofn.lStructSize = sizeof(ofn);
+	ofn.lpstrTitle = prompt.c_str();
+	ofn.lpstrFilter = "Text Files\0*.txt\0All Files\0*.*\0\0";
+	ofn.nFilterIndex = 2;
+	ofn.lpstrFile = f1;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_FILEMUSTEXIST;
+
+	if (::GetOpenFileName(&ofn) != FALSE)
+		return ofn.lpstrFile;
+
+	return NULL;
 }
