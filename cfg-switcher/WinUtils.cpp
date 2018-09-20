@@ -3,6 +3,9 @@
 #include <shlobj.h>
 #include <sstream>
 #include <commdlg.h>
+#include <stdlib.h>
+#include <iostream>
+#include <fstream>
 
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
 std::string GetLastErrorAsString() {
@@ -87,4 +90,29 @@ std::string BrowseFile(std::string prompt) {
 		return ofn.lpstrFile;
 
 	return NULL;
+}
+
+std::string FileFromPath(std::string filePath) {
+	char path_buffer[_MAX_PATH];
+	char drive[_MAX_DRIVE];
+	char dir[_MAX_DIR];
+	char fname[_MAX_FNAME];
+	char ext[_MAX_EXT];
+	errno_t err;
+	err = _splitpath_s(filePath.c_str(), drive, _MAX_DRIVE, dir, _MAX_DIR, fname, _MAX_FNAME, ext, _MAX_EXT);
+	if (err != 0)
+	{
+		std::cerr << "Error: Unable to parse config path -" << err << std::endl;;
+		return NULL;
+	}
+
+	return std::string(std::string(fname) + std::string(ext));
+}
+
+bool copyFile(const char *SRC, const char* DEST)
+{
+	std::ifstream src(SRC, std::ios::binary);
+	std::ofstream dest(DEST, std::ios::binary);
+	dest << src.rdbuf();
+	return src && dest;
 }

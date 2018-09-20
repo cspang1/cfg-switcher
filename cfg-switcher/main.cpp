@@ -72,25 +72,29 @@ int main() {
 	std::cout << "Config Switcher successfully started!" << std::endl;
 	std::cout << "=====================================" << std::endl;
 
+	// Check for unset games
+	std::vector<game> unset = settings.unsetGames();
+	if (!unset.empty()) {
+		std::cout << "Warning: The following games have unset config files" << std::endl;
+		for (game &g : unset)
+			std::cout << " - " << g.ID << std::endl;
+	}
+
 	std::vector<std::string> options = {
 		"ADD GAME",
+		"LIST GAMES",
+		"SET CONFIGS",
 		"EXIT"
 	};
 
 	int opt = 0;
 	bool cont = true;
-	bool restReq = false;
 
 	while (cont) {
 		std::cout << std::endl << "CHOOSE AN OPTION" << std::endl;
 		std::cout << "----------------" << std::endl;
 		for (int optInd = 0; optInd < options.size(); optInd++)
 			std::cout << optInd + 1 << ":  " << options[optInd] << std::endl;
-		if (restReq) {
-			std::cout << "********************" << std::endl;
-			std::cout << "* RESTART REQUIRED *" << std::endl;
-			std::cout << "********************" << std::endl;
-		}
 		std::cout << "- ";
 
 		while (!(std::cin >> opt)) {
@@ -121,7 +125,7 @@ int main() {
 			std::cout << "Enter path to game config file: ";
 			getline(std::cin, cfgPath);
 			GetFileAttributes(cfgPath.c_str());
-			if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(cfgPath.c_str()) && GetLastError() == ERROR_FILE_NOT_FOUND)
+			if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(cfgPath.c_str()) || GetLastError() == ERROR_FILE_NOT_FOUND)
 			{
 				std::cerr << "Error: Specified config file does not exist" << std::endl;
 				break;
@@ -129,14 +133,39 @@ int main() {
 			//std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
 			//path = BrowseFile("Select directory containing the " + gameID + " config files...");
 			if (settings.addGame(gameID, cfgPath)) {
-				std::cout << std::endl << "===================================================" << std::endl;
-				std::cout << "Successfully added " << gameID << " to configuration!" << std::endl;
-				std::cout << "Restart Config Switcher for changes to take effect" << std::endl;
-				std::cout << "===================================================" << std::endl;
-				restReq = true;
+				std::cout << std::endl << "******************************************************" << std::endl;
+				std::cout << "* Successfully added " << gameID << " to configuration *" << std::endl;
+				std::cout << "******************************************************" << std::endl;
 			}
 			break;
-		case 2: // Exit
+		case 2: // List games
+			std::cout << std::endl << "=============" << std::endl;
+			std::cout << "CURRENT GAMES" << std::endl;
+			std::cout << "=============" << std::endl;
+			for (game &g : settings.getGames()) {
+				std::cout << " - " << g.ID << std::endl;
+				std::cout << "\tPath: " << g.cfgPath << std::endl;
+				std::cout << "\tMain Config [" << (g.mainCfgSet ? "X" : " ") << "]" << std::endl;
+				std::cout << "\tBatt Config [" << (g.battCfgSet ? "X" : " ") << "]" << std::endl;
+			}
+			break;
+		case 3: // Set configs
+			std::cout << "Set configs for MAIN or BATTERY power?" << std::endl;
+			std::cout << "1: MAIN\n2: BATTERY" << std::endl;
+			opt = 0;
+			while (opt < 1 || opt > 2) {
+				while (!(std::cin >> opt)) {
+					std::cerr << "Error: Invalid input; expecting option number" << std::endl;
+					std::cin.clear();
+					std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				}
+				if(opt < 1 || opt > 2)
+					std::cerr << "Error: Invalid option" << std::endl;
+			}
+			settings.setConfigs(powerState(opt - 1));
+
+			break;
+		case 4: // Exit
 			cont = false;
 			break;
 		default:
