@@ -31,6 +31,7 @@ bool Settings::initSettings() {
 	tinyxml2::XMLNode* rootNode = settings.FirstChild();
 	tinyxml2::XMLElement* pathElement = rootNode->FirstChildElement("path");
 	path = pathElement->GetText();
+	cfgPath = path + "\\configs";
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
 	while (gameElement != nullptr) {
@@ -69,26 +70,32 @@ bool Settings::createSettingsFile() {
 }
 
 bool Settings::createFileStruct() {
-	std::string cfgPath(path + "\\configs");
 	if (!CreateDirectory(cfgPath.c_str(), NULL)) {
 		std::cerr << "Error creating configs directory: " + GetLastErrorAsString() << std::endl;
 		return false;
 	}
+
+	return updateFileStruct();
+}
+
+bool Settings::updateFileStruct() {
 	for (game &g : games) {
 		std::string gamePath(cfgPath + "\\" + g.ID);
 		bool gpdCreate = CreateDirectory(gamePath.c_str(), NULL);
 		bool gmdCreate = CreateDirectory(std::string(gamePath + "\\main").c_str(), NULL);
 		bool gbdCreate = CreateDirectory(std::string(gamePath + "\\battery").c_str(), NULL);
 		if (!gpdCreate || !gmdCreate || !gbdCreate) {
-			std::cerr << "Error creating games directories: " + GetLastErrorAsString() << std::endl;
-			return false;
+			if (GetLastError() != ERROR_ALREADY_EXISTS) {
+				std::cerr << "Error creating games directories: " + GetLastErrorAsString() << std::endl;
+				return false;
+			}
 		}
 	}
 
 	return true;
 }
 
-bool Settings::addGame(std::string gameID, std::string gamePath) {
+bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
@@ -102,11 +109,11 @@ bool Settings::addGame(std::string gameID, std::string gamePath) {
 	element->SetText(gameID.c_str());
 	gameElement->InsertEndChild(element);
 	element = settings.NewElement("path");
-	if (gamePath.empty()) {
+	if (gameCfgPath.empty()) {
 		std::cerr << "Error: Valid file path required" << std::endl;
 		return false;
 	}
-	element->SetText(gamePath.c_str());
+	element->SetText(gameCfgPath.c_str());
 	gameElement->InsertEndChild(element);
 	gamesElement->InsertEndChild(gameElement);
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
@@ -115,7 +122,9 @@ bool Settings::addGame(std::string gameID, std::string gamePath) {
 		return false;
 	}
 
-	return true;
+	games.push_back(game(gameID, gameCfgPath, "", ""));
+
+	return updateFileStruct();
 }
 
 bool Settings::gameExists(std::string gameID) {
