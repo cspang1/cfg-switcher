@@ -1,5 +1,6 @@
 # Debug settings.xml
 **/cfg-switcher/settings.xml
+**/configs
 
 # Prerequisites
 *.d

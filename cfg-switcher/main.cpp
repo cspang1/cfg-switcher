@@ -142,7 +142,12 @@ int main() {
 			std::cout << std::endl << "=============" << std::endl;
 			std::cout << "CURRENT GAMES" << std::endl;
 			std::cout << "=============" << std::endl;
-			for (game &g : games) {
+			if (games.empty()) {
+				std::cout << std::endl << "*********************************" << std::endl;
+				std::cout << "* NO GAMES CURRENTLY CONFIGURED *" << std::endl;
+				std::cout << "*********************************" << std::endl;
+			}
+			else for (game &g : games) {
 				std::cout << " - " << g.ID << std::endl;
 				std::cout << "\tPath: " << g.cfgPath << std::endl;
 				std::cout << "\tMain Config [" << (g.mainCfgSet ? "X" : " ") << "]" << std::endl;
@@ -150,24 +155,30 @@ int main() {
 			}
 			break;
 		case 3: // Set configs
-			std::cout << "Set configs for MAIN or BATTERY power?" << std::endl;
-			std::cout << "1: MAIN\n2: BATTERY" << std::endl;
-			opt = 0;
-			while (opt < 1 || opt > 2) {
-				while (!(std::cin >> opt)) {
-					std::cerr << "Error: Invalid input; expecting option number" << std::endl;
-					std::cin.clear();
-					std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			if (games.empty()) {
+				std::cout << std::endl << "*********************************" << std::endl;
+				std::cout << "* NO GAMES CURRENTLY CONFIGURED *" << std::endl;
+				std::cout << "*********************************" << std::endl;
+			}
+			else {
+				std::cout << "Set configs for MAIN or BATTERY power?" << std::endl;
+				std::cout << "1: MAIN\n2: BATTERY" << std::endl;
+				opt = 0;
+				while (opt < 1 || opt > 2) {
+					while (!(std::cin >> opt)) {
+						std::cerr << "Error: Invalid input; expecting option number" << std::endl;
+						std::cin.clear();
+						std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+					}
+					if (opt < 1 || opt > 2)
+						std::cerr << "Error: Invalid option" << std::endl;
 				}
-				if(opt < 1 || opt > 2)
-					std::cerr << "Error: Invalid option" << std::endl;
+				if (settings.setConfigs(powerState(opt - 1))) {
+					std::cout << std::endl << "=============================" << std::endl;
+					std::cout << "CONFIG FILES SUCCESSFULLY SET" << std::endl;
+					std::cout << "=============================" << std::endl;
+				}
 			}
-			if (settings.setConfigs(powerState(opt - 1))) {
-				std::cout << std::endl << "============================" << std::endl;
-				std::cout << "CONFIG FILES SUCCESSFULLY SET" << std::endl;
-				std::cout << "============================" << std::endl;
-			}
-
 			break;
 		case 4: // Exit
 			cont = false;
