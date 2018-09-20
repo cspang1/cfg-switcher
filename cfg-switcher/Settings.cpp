@@ -93,9 +93,6 @@ bool Settings::updateFileStruct() {
 		bool gpdCreate = CreateDirectory(gamePath.c_str(), NULL);
 		bool gmdCreate = CreateDirectory(std::string(gamePath + "\\main").c_str(), NULL);
 		bool gbdCreate = CreateDirectory(std::string(gamePath + "\\battery").c_str(), NULL);
-		std::cout << std::string(gamePath + "\\battery").c_str() << std::endl;
-		std::cout << std::string(gamePath + "\\main").c_str() << std::endl;
-		std::cout << gamePath.c_str() << std::endl;
 		if (!gpdCreate || !gmdCreate || !gbdCreate) {
 			if (GetLastError() != ERROR_ALREADY_EXISTS) {
 				std::cerr << "Error creating games directories: " + GetLastErrorAsString() << std::endl;

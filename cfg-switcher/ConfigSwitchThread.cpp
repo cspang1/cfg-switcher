@@ -31,13 +31,7 @@ unsigned int __stdcall configSwitchThread(void* data) {
 			ACStatusChanged = CurrentACStatus != ACLineStatus;
 			CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
 			if (ACStatusChanged) {
-				std::cout << "ACLineStatus = " + std::string(CurrentACStatus ? "PLUGGED IN" : "UNPLUGGED") << std::endl;
-				for (game &g : gees) {
-					std::cout << " - " << g.ID << std::endl;
-					std::cout << "\tPath: " << g.cfgPath << std::endl;
-					std::cout << "\tMain Config [" << (g.mainCfgSet ? "X" : " ") << "]" << std::endl;
-					std::cout << "\tBatt Config [" << (g.battCfgSet ? "X" : " ") << "]" << std::endl;
-				}
+				std::cout << "SWITCHING CONFIGURATION FILES TO " + std::string(CurrentACStatus ? "PLUGGED IN" : "UNPLUGGED") << std::endl;
 				SetEvent(EventHandles[0]);
 			}
 			ResetEvent(EventHandles[0]);

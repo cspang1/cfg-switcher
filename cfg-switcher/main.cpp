@@ -162,7 +162,11 @@ int main() {
 				if(opt < 1 || opt > 2)
 					std::cerr << "Error: Invalid option" << std::endl;
 			}
-			settings.setConfigs(powerState(opt - 1));
+			if (settings.setConfigs(powerState(opt - 1))) {
+				std::cout << std::endl << "============================" << std::endl;
+				std::cout << "CONFIG FILES SUCCESSFULLY SET" << std::endl;
+				std::cout << "============================" << std::endl;
+			}
 
 			break;
 		case 4: // Exit
@@ -188,7 +192,6 @@ int main() {
 		case WAIT_OBJECT_0:
 			printf("All threads ended, cleaning up for application exit...\n");
 			break;
-
 		default:
 			printf("WaitForMultipleObjects failed (%d)\n", GetLastError());
 			return 1;
