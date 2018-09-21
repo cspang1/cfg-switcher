@@ -142,7 +142,11 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 	return updateFileStruct();
 }
 
-bool Settings::gameExists(std::string gameID) {
+bool Settings::removeGame(game remGame, powerState keep) {
+	std::string gameID = remGame.ID;
+	if(keep != NONE)
+		switchConfigs(keep, *this, remGame);
+
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
@@ -155,9 +159,36 @@ bool Settings::gameExists(std::string gameID) {
 	tinyxml2::XMLElement* idElement;
 	while (gameElement != nullptr) {
 		idElement = gameElement->FirstChildElement("id");
-		if (!gameID.compare(idElement->GetText()))
-			return true;
+		if (!gameID.compare(idElement->GetText())) {
+			gamesElement->DeleteChild(gameElement);
+			tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
+			if (saved != tinyxml2::XML_SUCCESS) {
+				std::cerr << "Error: Unable to update game configuration" << std::endl;
+				return false;
+			}
+			else
+				break;
+		}
 		gameElement = gameElement->NextSiblingElement("game");
+	}
+
+	if (DeleteDirectory(std::string(cfgPath + "\\" + remGame.ID)))
+		std::cerr << "Error: Unable to delete " << remGame.ID << " config directory" << std::endl;
+
+	for (int index = 0; index < games.size(); index++) {
+		if (!remGame.ID.compare(games.at(index).ID)) {
+			games.erase(games.begin() + index);
+		}
+	}
+
+	return true;
+}
+
+bool Settings::gameExists(std::string gameID) {
+	bool exists = false;
+	for (game &g : games) {
+		if (!(gameID.compare(g.ID)))
+			return true;
 	}
 
 	return false;

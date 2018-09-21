@@ -1,8 +1,9 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "game.h"
-#include "CfgSwitchAPI.h"
+
+class game;
+enum powerState;
 
 class Settings {
 	std::vector<game> games;
@@ -13,8 +14,10 @@ public:
 	bool initSettings();
 	bool createSettingsFile();
 	bool createFileStruct();
+	bool removeFileStruct(game remGame);
 	bool updateFileStruct();
 	bool addGame(std::string gameID, std::string gamePath);
+	bool removeGame(game remGame, powerState keep);
 	bool gameExists(std::string gameID);
 	bool setConfigs(powerState tgtState);
 	std::vector<game> unsetGames();

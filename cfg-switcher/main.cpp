@@ -82,6 +82,7 @@ int main() {
 
 	std::vector<std::string> options = {
 		"ADD GAME",
+		"REMOVE GAME",
 		"LIST GAMES",
 		"SET CONFIGS",
 		"EXIT"
@@ -105,11 +106,14 @@ int main() {
 
 		std::string gameID;
 		std::string cfgPath;
+		int index;
+		bool result;
 		switch (opt) {
 		case 1: // Add game
 			std::cout << std::endl << "========" << std::endl;
 			std::cout << "ADD GAME" << std::endl;
 			std::cout << "========" << std::endl;
+			std::cout << "Leave a field blank to cancel" << std::endl;
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 			std::cout << "Enter game name: ";
@@ -118,12 +122,12 @@ int main() {
 				std::cerr << "Error: " << gameID << " already exists in configuration" << std::endl;
 				break;
 			}
-			else if (gameID.empty() || (gameID.find_first_not_of(' ') == std::string::npos)) {
-				std::cerr << "Error: Game ID cannot be empty" << std::endl;
+			else if (gameID.empty() || (gameID.find_first_not_of(' ') == std::string::npos))
 				break;
-			}
 			std::cout << "Enter path to game config file: ";
 			getline(std::cin, cfgPath);
+			if (cfgPath.empty() || (cfgPath.find_first_not_of(' ') == std::string::npos))
+				break;
 			GetFileAttributes(cfgPath.c_str());
 			if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(cfgPath.c_str()) || GetLastError() == ERROR_FILE_NOT_FOUND)
 			{
@@ -133,12 +137,66 @@ int main() {
 			//std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
 			//path = BrowseFile("Select directory containing the " + gameID + " config files...");
 			if (settings.addGame(gameID, cfgPath)) {
-				std::cout << std::endl << "******************************************************" << std::endl;
-				std::cout << "* Successfully added " << gameID << " to configuration *" << std::endl;
-				std::cout << "******************************************************" << std::endl;
+				std::cout << std::endl << "Successfully added " << gameID << " to configuration" << std::endl;
 			}
 			break;
-		case 2: // List games
+		case 2: // Remove game
+			std::cout << std::endl << "===========" << std::endl;
+			std::cout << "REMOVE GAME" << std::endl;
+			std::cout << "===========" << std::endl;
+			index = 1;
+			if (games.empty()) {
+				std::cout << std::endl << "*********************************" << std::endl;
+				std::cout << "* NO GAMES CURRENTLY CONFIGURED *" << std::endl;
+				std::cout << "*********************************" << std::endl;
+			}
+			else {
+				std::cout << "Which game would you like to remove?" << std::endl;
+				for (game &g : games) {
+					std::cout << index++ << ": " << g.ID << std::endl;
+				}
+				std::cout << index << ": CANCEL" << std::endl;
+				opt = 0;
+				while (opt < 1 || opt > games.size() + 1) {
+					while (!(std::cin >> opt)) {
+						std::cerr << "Error: Invalid input; expecting option number" << std::endl;
+						std::cin.clear();
+						std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+					}
+					if (opt < 1 || opt > games.size() + 1)
+						std::cerr << "Error: Invalid option" << std::endl;
+				}
+				if (opt == games.size() + 1)
+					break;
+				game remGame = games.at(opt - 1);
+				gameID = remGame.ID;
+
+				if (!remGame.battCfgSet || !remGame.mainCfgSet) {
+					if (settings.removeGame(remGame, NONE)) {
+						std::cout << "Successfully removed " << gameID << "!" << std::endl;
+						break;
+					}
+				}
+
+				std::cout << "Which config would you like to apply before removal?" << std::endl;
+				std::cout << "1: BATTERY\n2: MAIN\n3: NEITHER" << std::endl;
+				opt = 0;
+				while (opt < 1 || opt > 3) {
+					while (!(std::cin >> opt)) {
+						std::cerr << "Error: Invalid input; expecting option number" << std::endl;
+						std::cin.clear();
+						std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+					}
+					if (opt < 1 || opt > 3)
+						std::cerr << "Error: Invalid option" << std::endl;
+				}
+
+				if (settings.removeGame(remGame, powerState(opt - 1))) {
+					std::cout << "Successfully removed " << gameID << "!" << std::endl;
+				}
+			}
+				break;
+		case 3: // List games
 			std::cout << std::endl << "=============" << std::endl;
 			std::cout << "CURRENT GAMES" << std::endl;
 			std::cout << "=============" << std::endl;
@@ -154,7 +212,7 @@ int main() {
 				std::cout << "\tBatt Config [" << (g.battCfgSet ? "X" : " ") << "]" << std::endl;
 			}
 			break;
-		case 3: // Set configs
+		case 4: // Set configs
 			if (games.empty()) {
 				std::cout << std::endl << "*********************************" << std::endl;
 				std::cout << "* NO GAMES CURRENTLY CONFIGURED *" << std::endl;
@@ -192,7 +250,7 @@ int main() {
 				}
 			}
 			break;
-		case 4: // Exit
+		case 5: // Exit
 			cont = false;
 			break;
 		default:

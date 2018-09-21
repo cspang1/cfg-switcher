@@ -6,7 +6,6 @@
 #include "ConfigSwitchThread.h"
 #include "CfgSwitchAPI.h"
 #include "WinUtils.h"
-#include "game.h"
 
 const int NUM_HANDLES = 2;
 BYTE CurrentACStatus;
@@ -83,37 +82,4 @@ BYTE getPowerStatus() {
 	}
 
 	return lpSystemPowerStatus.ACLineStatus;
-}
-
-bool switchConfigs(powerState pState, Settings &settings) {
-	std::cout << "SWITCHING CONFIGURATION FILES TO " + std::string(pState ? "PLUGGED IN" : "UNPLUGGED") << std::endl;
-	std::string cfgPath = settings.getCfgPath();
-	std::string cfgSrc;
-	std::string cfgFile;
-
-	for (game &g : settings.getGames()) {
-		if (!g.battCfgSet || !g.mainCfgSet) {
-			std::cerr << "Error: Can't switch " << g.ID << " config files; one or both config files not set" << std::endl;
-			return false;
-		}
-		std::cout << "Switching " << g.ID << " config files... " << std::endl;
-		cfgFile = FileFromPath(g.cfgPath);
-		switch (pState) {
-		case MAIN:
-			cfgSrc = cfgPath + "\\" + g.ID + "\\main\\" + cfgFile;
-			break;
-		case BATTERY:
-			cfgSrc = cfgPath + "\\" + g.ID + "\\battery\\" + cfgFile;
-			break;
-		default:
-			std::cerr << "Error: Invalid AC line state specified" << std::endl;
-			return false;
-		}
-
-		if (!copyFile(cfgSrc.c_str(), g.cfgPath.c_str())) {
-			std::cerr << "Error: Unable to copy config file" << std::endl;
-			return false;
-		}
-	}
-	return true;
 }

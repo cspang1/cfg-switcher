@@ -1,6 +1,8 @@
 #pragma once
+class game;
+class Settings;
 
-enum powerState { BATTERY, MAIN };
+enum powerState { BATTERY, MAIN, NONE };
 
-bool initGames();
-bool switchCfgs(powerState);
+bool switchConfigs(powerState pState, Settings &settings, game &game);
+bool switchConfigs(powerState pState, Settings &settings);

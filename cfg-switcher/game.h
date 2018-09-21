@@ -3,10 +3,17 @@
 
 class game {
 public:
-	const std::string ID;
-	const std::string cfgPath;
+	std::string ID;
+	std::string cfgPath;
 	bool mainCfgSet;
 	bool battCfgSet;
+	game& operator=(const game& other) {
+		ID = other.ID;
+		cfgPath = other.cfgPath;
+		mainCfgSet = other.mainCfgSet;
+		battCfgSet = other.battCfgSet;
+		return *this;
+	}
 	game(std::string _ID, std::string _cfgPath, bool _mainCfgSet, bool _battCfgSet)
 		:ID(_ID), cfgPath(_cfgPath), mainCfgSet(_mainCfgSet), battCfgSet(_battCfgSet) { };
 };

@@ -1,7 +1,6 @@
 #include <Windows.h>
 #include <string>
 #include <iostream>
-#include <atomic>
 #include <future>
 #include "PowerWindowThread.h"
 #include "WinUtils.h"
