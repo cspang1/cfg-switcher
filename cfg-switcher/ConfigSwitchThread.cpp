@@ -92,6 +92,10 @@ bool switchConfigs(powerState pState, Settings &settings) {
 	std::string cfgFile;
 
 	for (game &g : settings.getGames()) {
+		if (!g.battCfgSet || !g.mainCfgSet) {
+			std::cerr << "Error: Can't switch " << g.ID << " config files; one or both config files not set" << std::endl;
+			return false;
+		}
 		std::cout << "Switching " << g.ID << " config files... " << std::endl;
 		cfgFile = FileFromPath(g.cfgPath);
 		switch (pState) {
