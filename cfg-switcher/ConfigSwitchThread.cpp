@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include "Settings.h"
 #include "ConfigSwitchThread.h"
 #include "CfgSwitchAPI.h"
 #include "WinUtils.h"
@@ -11,25 +12,23 @@ const int NUM_HANDLES = 2;
 BYTE CurrentACStatus;
 
 unsigned int __stdcall configSwitchThread(void* data) {
-	std::vector<game>& games = *(std::vector<game>*)data;
+	Settings& settings = *(Settings*)data;
 
 	HANDLE EventHandles[NUM_HANDLES];
 	EventHandles[0] = OpenEvent(EVENT_ALL_ACCESS, false, TEXT("PowerEvent"));
 	EventHandles[1] = OpenEvent(EVENT_ALL_ACCESS, false, TEXT("CloseEvent"));
 
-	BYTE ACLineStatus = { 0 };
-	bool ACStatusChanged = { 0 };
+	BYTE ACLineStatus = getPowerStatus();
+	bool ACStatusChanged = false;;
 
 	// Perform initial config switch
-	ACLineStatus = getPowerStatus();
 	CurrentACStatus = ACLineStatus;
-	ACStatusChanged = false;
 	switch (CurrentACStatus) {
 		case 0:
-			switchConfigs(BATTERY);
+			switchConfigs(BATTERY, settings);
 			break;
 		case 1:
-			switchConfigs(MAIN);
+			switchConfigs(MAIN, settings);
 			break;
 		default:
 			std::cerr << "Error: Invalid AC line status - " << GetLastErrorAsString() << std::endl;
@@ -45,10 +44,10 @@ unsigned int __stdcall configSwitchThread(void* data) {
 				if (ACStatusChanged) {
 					switch (CurrentACStatus) {
 						case 0:
-							switchConfigs(BATTERY);
+							switchConfigs(BATTERY, settings);
 							break;
 						case 1:
-							switchConfigs(MAIN);
+							switchConfigs(MAIN, settings);
 							break;
 						default:
 							std::cerr << "Error: Invalid AC line status - " << GetLastErrorAsString() << std::endl;
@@ -86,7 +85,31 @@ BYTE getPowerStatus() {
 	return lpSystemPowerStatus.ACLineStatus;
 }
 
-bool switchConfigs(powerState pState) {
+bool switchConfigs(powerState pState, Settings &settings) {
 	std::cout << "SWITCHING CONFIGURATION FILES TO " + std::string(pState ? "PLUGGED IN" : "UNPLUGGED") << std::endl;
+	std::string cfgPath = settings.getCfgPath();
+	std::string cfgSrc;
+	std::string cfgFile;
+
+	for (game &g : settings.getGames()) {
+		std::cout << "Switching " << g.ID << " config files... " << std::endl;
+		cfgFile = FileFromPath(g.cfgPath);
+		switch (pState) {
+		case MAIN:
+			cfgSrc = cfgPath + "\\" + g.ID + "\\main\\" + cfgFile;
+			break;
+		case BATTERY:
+			cfgSrc = cfgPath + "\\" + g.ID + "\\battery\\" + cfgFile;
+			break;
+		default:
+			std::cerr << "Error: Invalid AC line state specified" << std::endl;
+			return false;
+		}
+
+		if (!copyFile(cfgSrc.c_str(), g.cfgPath.c_str())) {
+			std::cerr << "Error: Unable to copy config file" << std::endl;
+			return false;
+		}
+	}
 	return true;
 }

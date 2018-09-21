@@ -233,7 +233,3 @@ std::vector<game> Settings::unsetGames() {
 
 	return unset;
 }
-
-std::vector<game>& Settings::getGames() {
-	return games;
-}

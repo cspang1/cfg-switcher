@@ -48,7 +48,7 @@ int main() {
 
 	// Initialize message window and config switch threads
 	HANDLE WindowThread = (HANDLE)_beginthreadex(0, 0, &windowsPowerThread, (void *)&pwhPromise, 0, 0);
-	HANDLE SwitchThread = (HANDLE)_beginthreadex(0, 0, &configSwitchThread, (void *)&games, 0, 0);
+	HANDLE SwitchThread = (HANDLE)_beginthreadex(0, 0, &configSwitchThread, (void *)&settings, 0, 0);
 	HANDLE ThreadHandles[NUM_THREAD_HANDLES] = { WindowThread, SwitchThread };
 	for (HANDLE &th : ThreadHandles) {
 		if (!th) {
@@ -162,7 +162,7 @@ int main() {
 			}
 			else {
 				std::cout << "Set configs for MAIN or BATTERY power?" << std::endl;
-				std::cout << "1: MAIN\n2: BATTERY" << std::endl;
+				std::cout << "1: BATTERY\n2: MAIN" << std::endl;
 				opt = 0;
 				while (opt < 1 || opt > 2) {
 					while (!(std::cin >> opt)) {
@@ -173,7 +173,19 @@ int main() {
 					if (opt < 1 || opt > 2)
 						std::cerr << "Error: Invalid option" << std::endl;
 				}
-				if (settings.setConfigs(powerState(opt - 1))) {
+				bool result;
+				switch (opt) {
+					case 1:
+						result = settings.setConfigs(BATTERY);
+						break;
+					case 2:
+						result = settings.setConfigs(MAIN);
+						break;
+					default:
+						result = false;
+						break;
+				}
+				if (result) {
 					std::cout << std::endl << "=============================" << std::endl;
 					std::cout << "CONFIG FILES SUCCESSFULLY SET" << std::endl;
 					std::cout << "=============================" << std::endl;
