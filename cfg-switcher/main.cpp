@@ -124,18 +124,8 @@ int main() {
 			}
 			else if (gameID.empty() || (gameID.find_first_not_of(' ') == std::string::npos))
 				break;
-			std::cout << "Enter path to game config file: ";
-			getline(std::cin, cfgPath);
-			if (cfgPath.empty() || (cfgPath.find_first_not_of(' ') == std::string::npos))
-				break;
-			GetFileAttributes(cfgPath.c_str());
-			if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(cfgPath.c_str()) || GetLastError() == ERROR_FILE_NOT_FOUND)
-			{
-				std::cerr << "Error: Specified config file does not exist" << std::endl;
-				break;
-			}
-			//std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
-			//path = BrowseFile("Select directory containing the " + gameID + " config files...");
+			std::cout << "Select directory containing the " << gameID << " config files..." << std::endl;
+			cfgPath = BrowseFile("Select directory containing the " + gameID + " config files...");
 			if (settings.addGame(gameID, cfgPath)) {
 				std::cout << std::endl << "Successfully added " << gameID << " to configuration" << std::endl;
 			}

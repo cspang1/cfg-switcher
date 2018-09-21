@@ -87,7 +87,7 @@ std::string BrowseFile(std::string prompt) {
 	ofn.nFilterIndex = 2;
 	ofn.lpstrFile = f1;
 	ofn.nMaxFile = MAX_PATH;
-	ofn.Flags = OFN_FILEMUSTEXIST;
+	ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 	if (::GetOpenFileName(&ofn) != FALSE)
 		return ofn.lpstrFile;
