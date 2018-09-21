@@ -1,6 +1,6 @@
 #pragma once
 
-enum powerState { MAIN, BATTERY };
+enum powerState { BATTERY, MAIN };
 
 bool initGames();
 bool switchCfgs(powerState);
