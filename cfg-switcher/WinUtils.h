@@ -9,3 +9,4 @@ std::string BrowseFile(std::string prompt);
 std::string FileFromPath(std::string filePath);
 bool copyFile(const char *SRC, const char* DEST);
 int DeleteDirectory(const std::string &refcstrRootDirectory, bool bDeleteSubdirectories = true);
+std::string GetCurrentWorkingDir();

@@ -9,13 +9,12 @@ class Settings {
 	std::vector<game> games;
 	std::string path;
 	std::string cfgPath;
-public:
-	void deleteSettingsFile();
-	bool initSettings();
 	bool createSettingsFile();
 	bool createFileStruct();
-	bool removeFileStruct(game remGame);
 	bool updateFileStruct();
+public:
+	Settings();
+	bool initSettings();
 	bool addGame(std::string gameID, std::string gamePath);
 	bool removeGame(game remGame, powerState keep);
 	bool gameExists(std::string gameID);

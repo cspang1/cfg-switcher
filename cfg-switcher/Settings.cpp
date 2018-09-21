@@ -7,8 +7,9 @@
 #include "game.h"
 #include "Settings.h"
 
-void Settings::deleteSettingsFile() {
-	remove("settings.xml");
+Settings::Settings() {
+	path = GetCurrentWorkingDir();
+	cfgPath = path + "\\configs";
 }
 
 bool Settings::initSettings() {
@@ -69,7 +70,7 @@ bool Settings::createSettingsFile() {
 	element->SetText(0.1f);
 	rootNode->InsertEndChild(element);
 	element = settings.NewElement("path");
-	element->SetText("D:\\cfg-switcher\\cfg-switcher");
+	element->SetText(path.c_str());
 	rootNode->InsertEndChild(element);
 	rootNode->InsertEndChild(settings.NewElement("games"));
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");

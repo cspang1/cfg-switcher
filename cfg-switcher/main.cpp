@@ -220,15 +220,15 @@ int main() {
 			}
 			else {
 				std::cout << "Set configs for MAIN or BATTERY power?" << std::endl;
-				std::cout << "1: BATTERY\n2: MAIN" << std::endl;
+				std::cout << "1: BATTERY\n2: MAIN\n3: CANCEL" << std::endl;
 				opt = 0;
-				while (opt < 1 || opt > 2) {
+				while (opt < 1 || opt > 3) {
 					while (!(std::cin >> opt)) {
 						std::cerr << "Error: Invalid input; expecting option number" << std::endl;
 						std::cin.clear();
 						std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 					}
-					if (opt < 1 || opt > 2)
+					if (opt < 1 || opt > 3)
 						std::cerr << "Error: Invalid option" << std::endl;
 				}
 				bool result;

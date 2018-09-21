@@ -7,6 +7,8 @@
 #include <iostream>
 #include <fstream>
 #include <conio.h>
+#include <stdio.h>
+#include <direct.h>
 
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
 std::string GetLastErrorAsString() {
@@ -180,4 +182,11 @@ int DeleteDirectory(const std::string &refcstrRootDirectory, bool bDeleteSubdire
 	}
 
 	return 0;
+}
+
+std::string GetCurrentWorkingDir() {
+	char buff[FILENAME_MAX];
+	_getcwd(buff, FILENAME_MAX);
+	std::string current_working_dir(buff);
+	return current_working_dir;
 }
