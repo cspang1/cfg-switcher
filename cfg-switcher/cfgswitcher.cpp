@@ -9,10 +9,12 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
 {
     ui->setupUi(this);
     CurrentACStatus = getPowerStatus();
+    setPowerStatusLabel();
+
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 }
 
-bool CfgSwitcher::nativeEventFilter(const QByteArray &eventType, void *message, long *)
+bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
 {
     BYTE ACLineStatus = getPowerStatus();
     bool ACStatusChanged = false;
@@ -21,22 +23,24 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &eventType, void *message, 
         ACLineStatus = getPowerStatus();
         ACStatusChanged = CurrentACStatus != ACLineStatus;
         CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
-        if (ACStatusChanged) {
-            switch (CurrentACStatus) {
-                case 0:
-                    ui->PowerStatus->setText("UNPLUGGED!");
-                    break;
-                case 1:
-                    ui->PowerStatus->setText("PLUGGED IN!");
-                    break;
-                default:
-                    //std::cerr << "Error: Invalid AC line status - " << GetLastErrorAsString() << std::endl;
-                    break;
-            }
-            //Msgbox.exec();
-        }
+        if (ACStatusChanged)
+            setPowerStatusLabel();
     }
     return false;
+}
+
+void CfgSwitcher::setPowerStatusLabel() {
+    switch (CurrentACStatus) {
+        case 0:
+            ui->PowerStatus->setText("UNPLUGGED!");
+            break;
+        case 1:
+            ui->PowerStatus->setText("PLUGGED IN!");
+            break;
+        default:
+            //std::cerr << "Error: Invalid AC line status - " << GetLastErrorAsString() << std::endl;
+            break;
+    }
 }
 
 BYTE CfgSwitcher::getPowerStatus() {
@@ -54,3 +58,4 @@ CfgSwitcher::~CfgSwitcher()
 {
     delete ui;
 }
+

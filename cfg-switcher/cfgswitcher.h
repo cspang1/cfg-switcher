@@ -22,6 +22,7 @@ private:
     Ui::CfgSwitcher *ui;
     BYTE CurrentACStatus;
     BYTE getPowerStatus();
+    void setPowerStatusLabel();
 };
 
 #endif // CFGSWITCHER_H
