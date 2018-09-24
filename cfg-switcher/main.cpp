@@ -1,12 +1,19 @@
-#include <QApplication>
-#include "mainwindow.h"
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include "cfgswitcher.h"
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
- QApplication app (argc, argv);
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
- MainWindow mw;
- mw.show();
+    QGuiApplication app(argc, argv);
 
- return app.exec();
+    QQmlApplicationEngine engine;
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+    if (engine.rootObjects().isEmpty())
+        return -1;
+
+    CfgSwitcher cfgs;
+
+    return app.exec();
 }
