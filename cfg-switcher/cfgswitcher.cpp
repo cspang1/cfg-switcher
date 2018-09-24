@@ -1,9 +1,13 @@
 #include "cfgswitcher.h"
-#include <Windows.h>
+#include "ui_cfgswitcher.h"
 #include <QAbstractEventDispatcher>
+#include <Windows.h>
 
-CfgSwitcher::CfgSwitcher(QObject *parent) : QObject(parent)
+CfgSwitcher::CfgSwitcher(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::CfgSwitcher)
 {
+    ui->setupUi(this);
     CurrentACStatus = getPowerStatus();
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 }
@@ -20,10 +24,10 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &eventType, void *message, 
         if (ACStatusChanged) {
             switch (CurrentACStatus) {
                 case 0:
-                    //Msgbox.setText("UNPLUGGED");
+                    ui->PowerStatus->setText("UNPLUGGED!");
                     break;
                 case 1:
-                    //Msgbox.setText("PLUGGED IN");
+                    ui->PowerStatus->setText("PLUGGED IN!");
                     break;
                 default:
                     //std::cerr << "Error: Invalid AC line status - " << GetLastErrorAsString() << std::endl;
@@ -44,4 +48,9 @@ BYTE CfgSwitcher::getPowerStatus() {
     }
 
     return lpSystemPowerStatus.ACLineStatus;
+}
+
+CfgSwitcher::~CfgSwitcher()
+{
+    delete ui;
 }
