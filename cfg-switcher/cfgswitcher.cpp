@@ -7,21 +7,13 @@
 #include "Settings.h"
 #include "gamemodel.h"
 #include "gamepicker.h"
+#include "game.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
-    QWidget(parent),
-    gameModel(parent),
-    ui(new Ui::CfgSwitcher)
-{
-    QMessageBox errMsg;
+    QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
     if(!settings.initSettings()) {
-        errMsg.setText("ERROR: UNABLE TO INITIALIZE SETTINGS");
-        errMsg.exec();
-    }
-
-    if(!settings.addGame("TEST", "C:\\Users\\unkno\\Desktop\\test.xml")) {
-        errMsg.setText("ERROR: UNABLE TO ADD GAME");
-        errMsg.exec();
+        QMessageBox::critical(this, tr("Error"), tr("Unable to initialize settings"));
+        QApplication::exit(EXIT_FAILURE);
     }
 
     connect(&settings, SIGNAL(gameAdded()), &gameModel, SLOT(updateGamesView()));
@@ -30,6 +22,9 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     CurrentACStatus = getPowerStatus();
     setPowerStatusLabel();
     ui->gamesTableView->setModel(&gameModel);
+    ui->gamesTableView->horizontalHeader()->setStretchLastSection(true);
+    for(game &g : settings.getGames())
+        addGame(QString::fromStdString(g.ID), QString::fromStdString(g.cfgPath));
 
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 }
@@ -43,8 +38,9 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
         ACLineStatus = getPowerStatus();
         ACStatusChanged = CurrentACStatus != ACLineStatus;
         CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
-        if (ACStatusChanged)
+        if (ACStatusChanged) {
             setPowerStatusLabel();
+        }
     }
     return false;
 }
@@ -57,18 +53,14 @@ void CfgSwitcher::setPowerStatusLabel() {
         case 1:
             ui->PowerStatus->setText("PLUGGED IN");
             break;
-        default:
-            //std::cerr << "Error: Invalid AC line status - " << GetLastErrorAsString() << std::endl;
-            break;
     }
 }
 
 BYTE CfgSwitcher::getPowerStatus() {
     SYSTEM_POWER_STATUS lpSystemPowerStatus;
     if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
-        //std::string errMsg = "Error getting system power status: " + GetLastErrorAsString();
-        //std::cerr << errMsg << std::endl;
-        //return EXIT_FAILURE;
+        QMessageBox::critical(this, tr("Error"), tr("Unable to get system power status"));
+        QApplication::exit(EXIT_FAILURE);
     }
 
     return lpSystemPowerStatus.ACLineStatus;
@@ -83,18 +75,16 @@ CfgSwitcher::~CfgSwitcher()
 void CfgSwitcher::on_setMainCfgBtn_clicked()
 {
     if(!settings.setConfigs(1)) {
-        QMessageBox errMsg;
-        errMsg.setText("ERROR: UNABLE TO SET MAIN CONFIGS");
-        errMsg.exec();
+        QMessageBox::critical(this, tr("Error"), tr("Unable to set main configuration files"));
+        QApplication::exit(EXIT_FAILURE);
     }
 }
 
 void CfgSwitcher::on_setBattCfgBtn_clicked()
 {
     if(!settings.setConfigs(0)) {
-        QMessageBox errMsg;
-        errMsg.setText("ERROR: UNABLE TO SET BATTERY CONFIGS");
-        errMsg.exec();
+        QMessageBox::critical(this, tr("Error"), tr("Unable to set battery configuration files"));
+
     }
 }
 
@@ -112,21 +102,18 @@ void CfgSwitcher::on_addGameBtn_clicked()
         gameName = gamePicker.getGameName();
         gamePath = gamePicker.getGamePath();
 
-        QMessageBox::information(this, tr("Game info"),
-            tr("\"%1\" @ \"%2\"").arg(gameName).arg(gamePath));
-
-        if(settings.addGame(gameName.toStdString(), gamePath.toStdString())) {
-            QList< QPair<QString, QString> >list = gameModel.getGames();
-            QPair<QString, QString> pair(gameName, gamePath);
-            gameModel.insertRows(0, 1, QModelIndex());
-            QModelIndex index = gameModel.index(0, 0, QModelIndex());
-            gameModel.setData(index, gameName, Qt::EditRole);
-            index = gameModel.index(0, 1, QModelIndex());
-            gameModel.setData(index, gamePath, Qt::EditRole);
-        }
-        else {
-            QMessageBox::information(this, tr("I dunno"),
-                tr("Failed to add game..."));
-        }
+        if(settings.addGame(gameName.toStdString(), gamePath.toStdString()))
+            addGame(gameName, gamePath);
+        else
+            QMessageBox::critical(this, tr("Error"), tr("Unable to add %1").arg(gameName));
     }
+}
+
+void CfgSwitcher::addGame(QString gameName, QString gamePath) {
+    QPair<QString, QString> pair(gameName, gamePath);
+    gameModel.insertRows(0, 1, QModelIndex());
+    QModelIndex index = gameModel.index(0, 0, QModelIndex());
+    gameModel.setData(index, gameName, Qt::EditRole);
+    index = gameModel.index(0, 1, QModelIndex());
+    gameModel.setData(index, gamePath, Qt::EditRole);
 }

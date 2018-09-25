@@ -26,6 +26,7 @@ public:
     explicit CfgSwitcher(QWidget *parent = nullptr);
     virtual bool nativeEventFilter(const QByteArray &eventType, void *message, long *) Q_DECL_OVERRIDE;
     ~CfgSwitcher() override;
+    void addGame(QString gameName, QString gamePath);
 
 private slots:
     void on_setMainCfgBtn_clicked();
