@@ -7,7 +7,7 @@
 #include "game.h"
 #include "Settings.h"
 
-Settings::Settings() {
+Settings::Settings(QObject *parent) : QObject(parent) {
     path = QDir::currentPath().toStdString();
 	cfgPath = path + "\\configs";
     settingsPath = path + "\\settings.xml";
@@ -125,11 +125,18 @@ bool Settings::updateFileStruct() {
 }
 
 bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
+    QMessageBox msg;
+    if(gameExists(gameID)) {
+        msg.setText(QString::fromStdString(gameID) + " already exists in configuration");
+        msg.exec();
+        return false;
+    }
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
-        //std::cerr << "Error loading settings file" << std::endl;
-		return false;
+        msg.setText("Error: Unable to load settings.xml file");
+        msg.exec();
+        return false;
 	}
 	tinyxml2::XMLNode* rootNode = settings.FirstChild();
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
@@ -139,8 +146,9 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 	gameElement->InsertEndChild(element);
 	element = settings.NewElement("path");
 	if (gameCfgPath.empty()) {
-        //std::cerr << "Error: Valid file path required" << std::endl;
-		return false;
+        msg.setText("Error: Valid game config path required");
+        msg.exec();
+        return false;
 	}
 	element->SetText(gameCfgPath.c_str());
 	gameElement->InsertEndChild(element);
@@ -153,8 +161,9 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 	gamesElement->InsertEndChild(gameElement);
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
 	if (saved != tinyxml2::XML_SUCCESS) {
-        //std::cerr << "Error: Unable to add game to configuration" << std::endl;
-		return false;
+        msg.setText("Error: Unable to save settings.xml file");
+        msg.exec();
+        return false;
 	}
 
 	games.push_back(game(gameID, gameCfgPath, false, false));
@@ -163,6 +172,7 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 }
 
 bool Settings::removeGame(game remGame, int keep) {
+    QMessageBox msg;
 	std::string gameID = remGame.ID;
     if(keep != 2)
 		switchConfigs(keep, *this, remGame);
@@ -170,8 +180,9 @@ bool Settings::removeGame(game remGame, int keep) {
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
-        //std::cerr << "Error loading settings file" << std::endl;
-		return false;
+        msg.setText("Error: Unable to load settings.xml file");
+        msg.exec();
+        return false;
 	}
 	tinyxml2::XMLNode* rootNode = settings.FirstChild();
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
@@ -183,8 +194,9 @@ bool Settings::removeGame(game remGame, int keep) {
 			gamesElement->DeleteChild(gameElement);
 			tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
 			if (saved != tinyxml2::XML_SUCCESS) {
-                //std::cerr << "Error: Unable to update game configuration" << std::endl;
-				return false;
+                msg.setText("Error: Unable to save settings.xml file");
+                msg.exec();
+                return false;
 			}
 			else
 				break;
@@ -192,11 +204,13 @@ bool Settings::removeGame(game remGame, int keep) {
 		gameElement = gameElement->NextSiblingElement("game");
 	}
 
-    // Delete game directory here
-    /*if (DeleteDirectory(std::string(cfgPath + "\\" + remGame.ID)))
-        std::cerr << "Error: Unable to delete " << remGame.ID << " config directory" << std::endl;*/
+    if(!QDir(QString::fromStdString(cfgPath + "\\" + remGame.ID)).removeRecursively()) {
+        msg.setText("Error: Unable to delete game config directory");
+        msg.exec();
+        return false;
+    }
 
-	for (int index = 0; index < games.size(); index++) {
+    for (int index = 0; index < games.size(); index++) {
 		if (!remGame.ID.compare(games.at(index).ID)) {
 			games.erase(games.begin() + index);
 		}
@@ -215,63 +229,68 @@ bool Settings::gameExists(std::string gameID) {
 }
 
 bool Settings::setConfigs(int tgtState) {
-	std::string cfgDest;
+    QMessageBox msg;
+    std::string cfgDest;
 	std::string cfgFile;
 
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
-        //std::cerr << "Error loading settings file" << std::endl;
-		return false;
+        msg.setText("Error: Unable to load settings.xml file");
+        msg.exec();
+        return false;
 	}
 	tinyxml2::XMLNode* rootNode = settings.FirstChild();
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
 
-    // Set config files here
-    /*
 	for (game &g : games) {
-		cfgFile = FileFromPath(g.cfgPath);
+        QFileInfo fileInfo(QFile(QString::fromStdString(g.cfgPath)).fileName());
+        cfgFile = QString(fileInfo.fileName()).toStdString();
 		switch (tgtState) {
-			case MAIN:
+            case 0:
+                cfgDest = cfgPath + "\\" + g.ID + "\\battery\\" + cfgFile;
+                break;
+            case 1:
 				cfgDest = cfgPath + "\\" + g.ID + "\\main\\" + cfgFile;
 				break;
-			case BATTERY:
-				cfgDest = cfgPath + "\\" + g.ID + "\\battery\\" + cfgFile;
-				break;
 			default:
-				std::cerr << "Error: Invalid AC line state specified" << std::endl;
+                msg.setText("Error: Invalid AClineStatus provided");
+                msg.exec();
 				return false;
 		}
 
-		if (!copyFile(g.cfgPath.c_str(), cfgDest.c_str())) {
-			std::cerr << "Error: Unable to copy config file" << std::endl;
-			return false;
-		}
+        if(!QFile::copy(QString::fromStdString(g.cfgPath), QString::fromStdString(cfgDest))) {
+            msg.setText("Error: Unable to copy config file");
+            msg.exec();
+            return false;
+        }
 		else {
 			while (g.ID.compare(gameElement->FirstChildElement("id")->GetText()))
 				gameElement = gameElement->NextSiblingElement("game");
 
 			switch (tgtState) {
-				case MAIN:
+                case 0:
+                    g.battCfgSet = true;
+                    gameElement->FirstChildElement("battcfgset")->SetAttribute("value", g.battCfgSet);
+                    break;
+                case 1:
 					g.mainCfgSet = true;
 					gameElement->FirstChildElement("maincfgset")->SetAttribute("value", g.mainCfgSet);
 					break;
-				case BATTERY:
-					g.battCfgSet = true;
-					gameElement->FirstChildElement("battcfgset")->SetAttribute("value", g.battCfgSet);
-					break;
 				default:
-					std::cerr << "Error: Invalid AC line state specified" << std::endl;
-					return false;
+                    msg.setText("Error: Invalid AClineStatus provided");
+                    msg.exec();
+                    return false;
 			}
 		}
-    }*/
+    }
 
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
 	if (saved != tinyxml2::XML_SUCCESS) {
-        //std::cerr << "Error: Unable to update game configuration" << std::endl;
-		return false;
+        msg.setText("Error: Unable to save settings.xml file");
+        msg.exec();
+        return false;
 	}
 
 	return true;

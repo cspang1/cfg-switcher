@@ -22,6 +22,13 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    if(!settings.setConfigs(0) || !settings.setConfigs(1)) {
+        QMessageBox errMsg;
+        errMsg.setText("ERROR: UNABLE TO SET CONFIGS");
+        errMsg.exec();
+        return EXIT_FAILURE;
+    }
+
     CfgSwitcher w;
     w.show();
 
