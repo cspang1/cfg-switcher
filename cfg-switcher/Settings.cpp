@@ -1,22 +1,22 @@
 #include <vector>
 #include <Windows.h>
 #include <QMessageBox>
+#include <QDir>
 #include "CfgSwitchAPI.h"
 #include "tinyxml2.h"
 #include "game.h"
 #include "Settings.h"
 
 Settings::Settings() {
-    path = "D:\\cfg-switcher\\cfg-switcher";
-    // Get actual path here...
-    //path = GetCurrentWorkingDir();
+    path = QDir::currentPath().toStdString();
 	cfgPath = path + "\\configs";
+    settingsPath = path + "\\settings.xml";
 }
 
 bool Settings::initSettings() {
     QMessageBox msg;
 	tinyxml2::XMLDocument settings;
-    tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
+    tinyxml2::XMLError loaded = settings.LoadFile(settingsPath.c_str());
 	if (loaded != tinyxml2::XML_SUCCESS) {
         msg.setText("Couldn't find settings.xml file...");
         msg.exec();
@@ -39,6 +39,7 @@ bool Settings::initSettings() {
 	tinyxml2::XMLElement* pathElement = rootNode->FirstChildElement("path");
 	path = pathElement->GetText();
 	cfgPath = path + "\\configs";
+    settingsPath = path + "\\settings.xml";
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
 	std::string gameID;
@@ -58,6 +59,11 @@ bool Settings::initSettings() {
 		games.push_back(game(gameID, gamePath, mainCfgSet, battCfgSet));
 		gameElement = gameElement->NextSiblingElement("game");
 	}
+
+    if(!QDir(QString::fromStdString(cfgPath)).exists()) {
+        msg.setText(QString::fromStdString(cfgPath) + " doesn't exist!");
+        msg.exec();
+    }
 
     // Check configs directory structure here...
     /*DWORD cfgFa = GetFileAttributesA(std::string(path + "\\configs").c_str());

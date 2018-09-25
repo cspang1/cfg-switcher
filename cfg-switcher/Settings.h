@@ -7,6 +7,7 @@ class Settings {
 	std::vector<game> games;
 	std::string path;
 	std::string cfgPath;
+    std::string settingsPath;
 	bool createSettingsFile();
 	bool createFileStruct();
 	bool updateFileStruct();
