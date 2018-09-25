@@ -260,6 +260,8 @@ bool Settings::setConfigs(int tgtState) {
 				return false;
 		}
 
+        if(QFile::exists(QString::fromStdString(cfgDest)))
+            QFile::remove(QString::fromStdString(cfgDest));
         if(!QFile::copy(QString::fromStdString(g.cfgPath), QString::fromStdString(cfgDest))) {
             msg.setText("Error: Unable to copy config file");
             msg.exec();

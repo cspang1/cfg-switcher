@@ -2,11 +2,24 @@
 #include "ui_cfgswitcher.h"
 #include <QAbstractEventDispatcher>
 #include <Windows.h>
+#include <QMessageBox>
+#include "Settings.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CfgSwitcher)
 {
+    QMessageBox errMsg;
+    if(!settings.initSettings()) {
+        errMsg.setText("ERROR: UNABLE TO INITIALIZE SETTINGS");
+        errMsg.exec();
+    }
+
+    if(!settings.addGame("GTA V", "C:\\Users\\unkno\\Desktop\\test.xml")) {
+        errMsg.setText("ERROR: UNABLE TO ADD GAME");
+        errMsg.exec();
+    }
+
     ui->setupUi(this);
     CurrentACStatus = getPowerStatus();
     setPowerStatusLabel();
@@ -59,3 +72,21 @@ CfgSwitcher::~CfgSwitcher()
     delete ui;
 }
 
+
+void CfgSwitcher::on_setMainCfgBtn_clicked()
+{
+    if(!settings.setConfigs(1)) {
+        QMessageBox errMsg;
+        errMsg.setText("ERROR: UNABLE TO SET MAIN CONFIGS");
+        errMsg.exec();
+    }
+}
+
+void CfgSwitcher::on_setBattCfgBtn_clicked()
+{
+    if(!settings.setConfigs(0)) {
+        QMessageBox errMsg;
+        errMsg.setText("ERROR: UNABLE TO SET BATTERY CONFIGS");
+        errMsg.exec();
+    }
+}
