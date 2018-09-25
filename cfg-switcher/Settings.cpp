@@ -95,24 +95,31 @@ bool Settings::createFileStruct() {
         return false;
     }
 
-    return true;
-    //return updateFileStruct();
+    return updateFileStruct();
 }
 
 bool Settings::updateFileStruct() {
-    // Update file struct here
-    /*for (game &g : games) {
-		std::string gamePath(cfgPath + "\\" + g.ID);
-        bool gpdCreate = CreateDirectoryA(gamePath.c_str(), nullptr);
-        bool gmdCreate = CreateDirectoryA(std::string(gamePath + "\\main").c_str(), nullptr);
-        bool gbdCreate = CreateDirectoryA(std::string(gamePath + "\\battery").c_str(), nullptr);
-		if (!gpdCreate || !gmdCreate || !gbdCreate) {
-			if (GetLastError() != ERROR_ALREADY_EXISTS) {
-				std::cerr << "Error creating games directories: " + GetLastErrorAsString() << std::endl;
-				return false;
-			}
+    QMessageBox msg;
+    std::string gamePath;
+    std::string tempPath;
+    QDir gpdCreate;
+    QDir gmdCreate;
+    QDir gbdCreate;
+    for (game &g : games) {
+        gamePath = cfgPath + "\\" + g.ID;
+        gpdCreate.mkpath(QString::fromStdString(gamePath));
+        gpdCreate.setPath(QString::fromStdString(gamePath));
+        tempPath = gamePath + "\\main";
+        gmdCreate.mkpath(QString::fromStdString(tempPath));
+        gmdCreate.setPath(QString::fromStdString(tempPath));
+        tempPath = gamePath + "\\battery";
+        gbdCreate.mkpath(QString::fromStdString(tempPath));
+        gbdCreate.setPath(QString::fromStdString(tempPath));
+        if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists()) {
+            msg.setText("Error creating dirs?");
+            msg.exec();
 		}
-    }*/
+    }
 
 	return true;
 }

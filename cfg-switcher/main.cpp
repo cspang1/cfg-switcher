@@ -12,6 +12,14 @@ int main(int argc, char *argv[])
         QMessageBox errMsg;
         errMsg.setText("ERROR: UNABLE TO INITIALIZE SETTINGS");
         errMsg.exec();
+        return EXIT_FAILURE;
+    }
+
+    if(!settings.addGame("GTA V", "C:\\Users\\unkno\\Desktop\\test.xml")) {
+        QMessageBox errMsg;
+        errMsg.setText("ERROR: UNABLE TO ADD GAME");
+        errMsg.exec();
+        return EXIT_FAILURE;
     }
 
     CfgSwitcher w;
