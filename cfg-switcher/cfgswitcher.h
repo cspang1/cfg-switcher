@@ -22,6 +22,8 @@ private slots:
     void on_setMainCfgBtn_clicked();
     void on_setBattCfgBtn_clicked();
 
+    void on_quitButton_clicked();
+
 private:
     Settings settings;
     Ui::CfgSwitcher *ui;

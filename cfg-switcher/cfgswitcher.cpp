@@ -90,3 +90,8 @@ void CfgSwitcher::on_setBattCfgBtn_clicked()
         errMsg.exec();
     }
 }
+
+void CfgSwitcher::on_quitButton_clicked()
+{
+    QCoreApplication::quit();
+}
