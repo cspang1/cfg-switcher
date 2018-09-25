@@ -29,14 +29,16 @@ SOURCES += \
     cfgswitcher.cpp \
     main.cpp \
     Settings.cpp \
-    tinyxml2.cpp
+    tinyxml2.cpp \
+    gamemodel.cpp
 
 HEADERS += \
     CfgSwitchAPI.h \
     cfgswitcher.h \
     game.h \
     Settings.h \
-    tinyxml2.h
+    tinyxml2.h \
+    gamemodel.h
 
 FORMS += \
         cfgswitcher.ui

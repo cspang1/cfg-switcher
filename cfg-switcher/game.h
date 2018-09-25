@@ -15,5 +15,5 @@ public:
 		return *this;
 	}
 	game(std::string _ID, std::string _cfgPath, bool _mainCfgSet, bool _battCfgSet)
-		:ID(_ID), cfgPath(_cfgPath), mainCfgSet(_mainCfgSet), battCfgSet(_battCfgSet) { };
+        :ID(_ID), cfgPath(_cfgPath), mainCfgSet(_mainCfgSet), battCfgSet(_battCfgSet) { }
 };

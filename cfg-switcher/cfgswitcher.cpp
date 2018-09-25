@@ -1,12 +1,15 @@
-#include "cfgswitcher.h"
-#include "ui_cfgswitcher.h"
 #include <QAbstractEventDispatcher>
 #include <Windows.h>
 #include <QMessageBox>
+#include <QFileDialog>
+#include "cfgswitcher.h"
+#include "ui_cfgswitcher.h"
 #include "Settings.h"
+#include "gamemodel.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent),
+    gameModel(parent),
     ui(new Ui::CfgSwitcher)
 {
     QMessageBox errMsg;
@@ -15,14 +18,19 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
         errMsg.exec();
     }
 
-    if(!settings.addGame("GTA V", "C:\\Users\\unkno\\Desktop\\test.xml")) {
+    if(!settings.addGame("TEST", "C:\\Users\\unkno\\Desktop\\test.xml")) {
         errMsg.setText("ERROR: UNABLE TO ADD GAME");
         errMsg.exec();
     }
 
+    gameModel.setGames(settings.getGames());
+
+    connect(&settings, SIGNAL(gameAdded()), &gameModel, SLOT(updateGamesView()));
+
     ui->setupUi(this);
     CurrentACStatus = getPowerStatus();
     setPowerStatusLabel();
+    ui->gamesTableView->setModel(&gameModel);
 
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 }
@@ -94,4 +102,10 @@ void CfgSwitcher::on_setBattCfgBtn_clicked()
 void CfgSwitcher::on_quitButton_clicked()
 {
     QCoreApplication::quit();
+}
+
+void CfgSwitcher::on_addGameBtn_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, ("Select Game Config File"), "", (""));
+    settings.addGame("tester", fileName.toStdString());
 }

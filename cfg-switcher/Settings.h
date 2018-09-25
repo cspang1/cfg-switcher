@@ -29,6 +29,7 @@ public:
 	std::string getCfgPath() { return cfgPath; }
 
 signals:
+    void gameAdded();
 
 public slots:
 };
