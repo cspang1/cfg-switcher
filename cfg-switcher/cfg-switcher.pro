@@ -26,10 +26,18 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        cfgswitcher.cpp
+    CfgSwitchAPI.cpp \
+    cfgswitcher.cpp \
+    main.cpp \
+    Settings.cpp \
+    tinyxml2.cpp
 
 HEADERS += \
-        cfgswitcher.h
+    CfgSwitchAPI.h \
+    cfgswitcher.h \
+    game.h \
+    Settings.h \
+    tinyxml2.h
 
 FORMS += \
         cfgswitcher.ui

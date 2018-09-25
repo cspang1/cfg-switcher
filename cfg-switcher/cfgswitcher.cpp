@@ -32,10 +32,10 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
 void CfgSwitcher::setPowerStatusLabel() {
     switch (CurrentACStatus) {
         case 0:
-            ui->PowerStatus->setText("UNPLUGGED!");
+            ui->PowerStatus->setText("UNPLUGGED");
             break;
         case 1:
-            ui->PowerStatus->setText("PLUGGED IN!");
+            ui->PowerStatus->setText("PLUGGED IN");
             break;
         default:
             //std::cerr << "Error: Invalid AC line status - " << GetLastErrorAsString() << std::endl;
