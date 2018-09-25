@@ -63,14 +63,9 @@ bool Settings::initSettings() {
     if(!QDir(QString::fromStdString(cfgPath)).exists()) {
         msg.setText(QString::fromStdString(cfgPath) + " doesn't exist!");
         msg.exec();
+        if(!createFileStruct())
+            return false;
     }
-
-    // Check configs directory structure here...
-    /*DWORD cfgFa = GetFileAttributesA(std::string(path + "\\configs").c_str());
-    if ((cfgFa == INVALID_FILE_ATTRIBUTES) || !(cfgFa & FILE_ATTRIBUTE_DIRECTORY)) {
-		if (!createFileStruct())
-			return false;
-    }*/
 
 	return true;
 }
@@ -93,13 +88,15 @@ bool Settings::createSettingsFile() {
 }
 
 bool Settings::createFileStruct() {
-    // Create file struct here
-    /*if (!CreateDirectoryA(cfgPath.c_str(), NULL)) {
-		std::cerr << "Error creating configs directory: " + GetLastErrorAsString() << std::endl;
-		return false;
-    }*/
+    QMessageBox msg;
+    if(!QDir().mkdir(QString::fromStdString(cfgPath))) {
+        msg.setText("Error creating " + QString::fromStdString(cfgPath));
+        msg.exec();
+        return false;
+    }
 
-	return updateFileStruct();
+    return true;
+    //return updateFileStruct();
 }
 
 bool Settings::updateFileStruct() {
