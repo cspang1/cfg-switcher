@@ -23,8 +23,6 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
         errMsg.exec();
     }
 
-    gameModel.setGames(settings.getGames());
-
     connect(&settings, SIGNAL(gameAdded()), &gameModel, SLOT(updateGamesView()));
 
     ui->setupUi(this);
@@ -107,5 +105,20 @@ void CfgSwitcher::on_quitButton_clicked()
 void CfgSwitcher::on_addGameBtn_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this, ("Select Game Config File"), "", (""));
-    settings.addGame("tester", fileName.toStdString());
+    if(settings.addGame(fileName.toStdString(), fileName.toStdString())) {
+        QList< QPair<QString, QString> >list = gameModel.getGames();
+        QPair<QString, QString> pair(fileName, fileName);
+
+        if (!list.contains(pair)) {
+            gameModel.insertRows(0, 1, QModelIndex());
+
+            QModelIndex index = gameModel.index(0, 0, QModelIndex());
+            gameModel.setData(index, fileName, Qt::EditRole);
+            index = gameModel.index(0, 1, QModelIndex());
+            gameModel.setData(index, fileName, Qt::EditRole);
+        } else {
+            QMessageBox::information(this, tr("Duplicate Name"),
+                tr("The name \"%1\" already exists.").arg(fileName));
+        }
+    }
 }

@@ -16,6 +16,7 @@ private:
 	bool createSettingsFile();
 	bool createFileStruct();
 	bool updateFileStruct();
+
 public:
     explicit Settings(QObject *parent = nullptr);
 	bool initSettings();
@@ -27,9 +28,6 @@ public:
 	std::vector<game>& getGames() { return games; }
 	std::string getPath() { return path; }
 	std::string getCfgPath() { return cfgPath; }
-
-signals:
-    void gameAdded();
 
 public slots:
 };

@@ -168,8 +168,6 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 
 	games.push_back(game(gameID, gameCfgPath, false, false));
 
-    emit gameAdded();
-
 	return updateFileStruct();
 }
 

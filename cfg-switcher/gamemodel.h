@@ -2,14 +2,13 @@
 #define GAMEMODEL_H
 
 #include <QAbstractTableModel>
-#include <vector>
-#include "game.h"
 
 class GameModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    std::vector<game>* games;
+    QList< QPair<QString, QString> > games;
+    const int NUM_COL = 2;
 
 public:
     GameModel(QObject *parent);
@@ -18,13 +17,10 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     bool setData(const QModelIndex &index, const QVariant &value, int role=Qt::EditRole) override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
-    void setGames(std::vector<game> &gs) {
-        games = &gs;
-    }
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-
-public slots:
-    void updateGamesView();
+    bool insertRows(int position, int rows, const QModelIndex &index) override;
+    bool removeRows(int position, int rows, const QModelIndex &index) override;
+    QList<QPair<QString, QString>> getGames();
 };
 
 #endif // GAMEMODEL_H
