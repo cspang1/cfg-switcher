@@ -6,6 +6,7 @@
 #include "ui_cfgswitcher.h"
 #include "Settings.h"
 #include "gamemodel.h"
+#include "gamepicker.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent),
@@ -104,21 +105,28 @@ void CfgSwitcher::on_quitButton_clicked()
 
 void CfgSwitcher::on_addGameBtn_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, ("Select Game Config File"), "", (""));
-    if(settings.addGame(fileName.toStdString(), fileName.toStdString())) {
-        QList< QPair<QString, QString> >list = gameModel.getGames();
-        QPair<QString, QString> pair(fileName, fileName);
+    GamePicker gamePicker;
+    QString gameName;
+    QString gamePath;
+    if(gamePicker.exec()) {
+        gameName = gamePicker.getGameName();
+        gamePath = gamePicker.getGamePath();
 
-        if (!list.contains(pair)) {
+        QMessageBox::information(this, tr("Game info"),
+            tr("\"%1\" @ \"%2\"").arg(gameName).arg(gamePath));
+
+        if(settings.addGame(gameName.toStdString(), gamePath.toStdString())) {
+            QList< QPair<QString, QString> >list = gameModel.getGames();
+            QPair<QString, QString> pair(gameName, gamePath);
             gameModel.insertRows(0, 1, QModelIndex());
-
             QModelIndex index = gameModel.index(0, 0, QModelIndex());
-            gameModel.setData(index, fileName, Qt::EditRole);
+            gameModel.setData(index, gameName, Qt::EditRole);
             index = gameModel.index(0, 1, QModelIndex());
-            gameModel.setData(index, fileName, Qt::EditRole);
-        } else {
-            QMessageBox::information(this, tr("Duplicate Name"),
-                tr("The name \"%1\" already exists.").arg(fileName));
+            gameModel.setData(index, gamePath, Qt::EditRole);
+        }
+        else {
+            QMessageBox::information(this, tr("I dunno"),
+                tr("Failed to add game..."));
         }
     }
 }

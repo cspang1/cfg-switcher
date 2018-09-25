@@ -30,7 +30,8 @@ SOURCES += \
     main.cpp \
     Settings.cpp \
     tinyxml2.cpp \
-    gamemodel.cpp
+    gamemodel.cpp \
+    gamepicker.cpp
 
 HEADERS += \
     CfgSwitchAPI.h \
@@ -38,10 +39,12 @@ HEADERS += \
     game.h \
     Settings.h \
     tinyxml2.h \
-    gamemodel.h
+    gamemodel.h \
+    gamepicker.h
 
 FORMS += \
-        cfgswitcher.ui
+        cfgswitcher.ui \
+    gamepicker.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
