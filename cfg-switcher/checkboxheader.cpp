@@ -32,8 +32,8 @@ void CheckboxHeader::paintSection(QPainter* painter, const QRect& rect, int logi
 
 void CheckboxHeader::mouseReleaseEvent(QMouseEvent* event)
 {
+    Q_UNUSED(event);
     setIsChecked(!isChecked());
-
     emit checkBoxClicked(isChecked());
 }
 

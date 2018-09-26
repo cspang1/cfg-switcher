@@ -22,10 +22,10 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     CurrentACStatus = getPowerStatus();
     setPowerStatusLabel();
     ui->gamesTableView->setModel(&gameModel);
-    ui->gamesTableView->horizontalHeader()->setStretchLastSection(true);
     for(game &g : settings.getGames())
         addGame(QString::fromStdString(g.ID), QString::fromStdString(g.cfgPath));
     CheckboxHeader* header = new CheckboxHeader(Qt::Horizontal, ui->gamesTableView);
+    header->setStretchLastSection(true);
     ui->gamesTableView->setHorizontalHeader(header);
     connect(header, SIGNAL(checkBoxClicked(bool)), &gameModel, SLOT(selectAll(bool)));
     connect(&gameModel, SIGNAL(setSelectAll(bool)), header, SLOT(setSelectAll(bool)));
