@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QTimer>
 #include "cfgswitcher.h"
 #include "ui_cfgswitcher.h"
 #include "settings.h"
@@ -117,8 +118,10 @@ void CfgSwitcher::addGame(QString gameName, QString gamePath) {
     QPair<QString, QString> pair(gameName, gamePath);
     gameModel.insertRows(0, 1, QModelIndex());
     QModelIndex index = gameModel.index(0, 0, QModelIndex());
-    gameModel.setData(index, gameName, Qt::EditRole);
+    gameModel.setData(index, Qt::Unchecked, Qt::CheckStateRole);
     index = gameModel.index(0, 1, QModelIndex());
+    gameModel.setData(index, gameName, Qt::EditRole);
+    index = gameModel.index(0, 2, QModelIndex());
     gameModel.setData(index, gamePath, Qt::EditRole);
 }
 

@@ -7,8 +7,9 @@ class GameModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    QList< QPair<QString, QString> > games;
-    const int NUM_COL = 2;
+    QList< QPair<QString, QString>> games;
+    QList<Qt::CheckState> selects;
+    const int NUM_COL = 3;
 
 public:
     GameModel(QObject *parent);
@@ -21,6 +22,7 @@ public:
     bool insertRows(int position, int rows, const QModelIndex &index) override;
     bool removeRows(int position, int rows, const QModelIndex &index) override;
     QList<QPair<QString, QString>> getGames();
+    QList<Qt::CheckState> getSelects();
 };
 
 #endif // GAMEMODEL_H
