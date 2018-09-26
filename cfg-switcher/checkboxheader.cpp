@@ -34,7 +34,10 @@ void CheckboxHeader::mouseReleaseEvent(QMouseEvent* event)
 {
     Q_UNUSED(event);
     setIsChecked(!isChecked());
-    emit checkBoxClicked(isChecked());
+    if(isChecked())
+        emit checkBoxClicked(Qt::Checked);
+    else
+        emit checkBoxClicked(Qt::Unchecked);
 }
 
 void CheckboxHeader::redrawCheckBox()

@@ -20,6 +20,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
 
     // Initialize UI
     ui->setupUi(this);
+    ui->remGames->setEnabled(false);
 
     // Initialize power status
     CurrentACStatus = getPowerStatus();
@@ -35,11 +36,90 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     CheckboxHeader* header = new CheckboxHeader(Qt::Horizontal, ui->gamesTableView);
     header->setStretchLastSection(true);
     ui->gamesTableView->setHorizontalHeader(header);
-    ui->gamesTableView->resizeColumnsToContents();
+    ui->gamesTableView->resizeColumnToContents(0);
+    ui->gamesTableView->resizeColumnToContents(1);
 
     // Configure signal/slot connections
-    connect(header, SIGNAL(checkBoxClicked(bool)), &gameModel, SLOT(selectAll(bool)));
+    connect(header, SIGNAL(checkBoxClicked(Qt::CheckState)), &gameModel, SLOT(selectAll(Qt::CheckState)));
     connect(&gameModel, SIGNAL(setSelectAll(bool)), header, SLOT(setSelectAll(bool)));
+    connect(&gameModel, SIGNAL(setRemGameBtn(bool)), this, SLOT(setRemGameBtn(bool)));
+}
+
+void CfgSwitcher::addGame(QString gameName, QString gamePath) {
+    QPair<QString, QString> pair(gameName, gamePath);
+    gameModel.insertRows(0, 1, QModelIndex());
+    QModelIndex index = gameModel.index(0, 0, QModelIndex());
+    gameModel.setData(index, Qt::Unchecked, Qt::CheckStateRole);
+    index = gameModel.index(0, 1, QModelIndex());
+    gameModel.setData(index, gameName, Qt::EditRole);
+    index = gameModel.index(0, 2, QModelIndex());
+    gameModel.setData(index, gamePath, Qt::EditRole);
+    ui->gamesTableView->resizeColumnToContents(1);
+}
+
+void CfgSwitcher::removeGame(QString gameName) {
+    QList<QPair<QString, QString>> gameList = gameModel.getGames();
+    int remIndex = -1;
+    for(int i = 0; i < gameList.size(); i++)
+        if(!gameName.compare(gameList.at(i).first))
+            remIndex = i;
+
+    gameModel.removeRows(remIndex, 1, QModelIndex());
+    ui->gamesTableView->resizeColumnToContents(1);
+}
+
+bool CfgSwitcher::switchConfigs(int pState, Settings &settings, game &game) {
+    std::string cfgPath = settings.getCfgPath();
+    std::string cfgSrc;
+    std::string cfgFile;
+
+    if (!game.battCfgSet || !game.mainCfgSet) {
+        //std::cerr << "Error: Can't switch " << game.ID << " config files; one or both config files not set" << std::endl;
+        return false;
+    }
+    //std::cout << "Switching " << game.ID << " config files to " << std::string(pState ? "plugged in" : "unplugged") + "..." << std::endl;
+    QFileInfo cfgFileInfo(QFile(QString::fromStdString(game.cfgPath)));
+    cfgFile = cfgFileInfo.fileName().toStdString();
+    QString filename(cfgFileInfo.fileName());
+    switch (pState) {
+    case 0:
+        cfgSrc = cfgPath + "\\" + game.ID + "\\battery\\" + cfgFile;
+        break;
+    case 1:
+        cfgSrc = cfgPath + "\\" + game.ID + "\\main\\" + cfgFile;
+        break;
+    default:
+        //std::cerr << "Error: Invalid AC line state specified" << std::endl;
+        return false;
+    }
+
+    //std::cout << cfgSrc << " to " << game.cfgPath << std::endl;
+
+    if(QFile::exists(QString::fromStdString(game.cfgPath))) {
+        QFile::remove(QString::fromStdString(game.cfgPath));
+        //std::cout << "Removing " << game.cfgPath << std::endl;
+    }
+    if(!QFile::copy(QString::fromStdString(cfgSrc), QString::fromStdString(game.cfgPath))) {
+        //std::cout << "Didn't work!" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool CfgSwitcher::switchConfigs(int pState, Settings &settings) {
+    std::string cfgPath = settings.getCfgPath();
+    std::string cfgSrc;
+    std::string cfgFile;
+
+    bool success = true;
+
+    for (game &g : settings.getGames()) {
+        if (!switchConfigs(pState, settings, g))
+            success = false;
+    }
+
+    return success;
 }
 
 bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
@@ -142,79 +222,6 @@ void CfgSwitcher::on_addGameBtn_clicked()
     }
 }
 
-void CfgSwitcher::addGame(QString gameName, QString gamePath) {
-    QPair<QString, QString> pair(gameName, gamePath);
-    gameModel.insertRows(0, 1, QModelIndex());
-    QModelIndex index = gameModel.index(0, 0, QModelIndex());
-    gameModel.setData(index, Qt::Unchecked, Qt::CheckStateRole);
-    index = gameModel.index(0, 1, QModelIndex());
-    gameModel.setData(index, gameName, Qt::EditRole);
-    index = gameModel.index(0, 2, QModelIndex());
-    gameModel.setData(index, gamePath, Qt::EditRole);
-    ui->gamesTableView->resizeColumnsToContents();
-}
-
-void CfgSwitcher::removeGame(QString gameName) {
-    QList<QPair<QString, QString>> gameList = gameModel.getGames();
-    int remIndex = -1;
-    for(int i = 0; i < gameList.size(); i++)
-        if(!gameName.compare(gameList.at(i).first))
-            remIndex = i;
-
-    gameModel.removeRows(remIndex, 1, QModelIndex());
-    ui->gamesTableView->resizeColumnsToContents();
-}
-
-bool CfgSwitcher::switchConfigs(int pState, Settings &settings, game &game) {
-    std::string cfgPath = settings.getCfgPath();
-    std::string cfgSrc;
-    std::string cfgFile;
-
-    if (!game.battCfgSet || !game.mainCfgSet) {
-        //std::cerr << "Error: Can't switch " << game.ID << " config files; one or both config files not set" << std::endl;
-        return false;
-    }
-    //std::cout << "Switching " << game.ID << " config files to " << std::string(pState ? "plugged in" : "unplugged") + "..." << std::endl;
-    QFileInfo cfgFileInfo(QFile(QString::fromStdString(game.cfgPath)));
-    cfgFile = cfgFileInfo.fileName().toStdString();
-    QString filename(cfgFileInfo.fileName());
-    switch (pState) {
-    case 0:
-        cfgSrc = cfgPath + "\\" + game.ID + "\\battery\\" + cfgFile;
-        break;
-    case 1:
-        cfgSrc = cfgPath + "\\" + game.ID + "\\main\\" + cfgFile;
-        break;
-    default:
-        //std::cerr << "Error: Invalid AC line state specified" << std::endl;
-        return false;
-    }
-
-    //std::cout << cfgSrc << " to " << game.cfgPath << std::endl;
-
-    if(QFile::exists(QString::fromStdString(game.cfgPath))) {
-        QFile::remove(QString::fromStdString(game.cfgPath));
-        //std::cout << "Removing " << game.cfgPath << std::endl;
-    }
-    if(!QFile::copy(QString::fromStdString(cfgSrc), QString::fromStdString(game.cfgPath))) {
-        //std::cout << "Didn't work!" << std::endl;
-        return false;
-    }
-
-    return true;
-}
-
-bool CfgSwitcher::switchConfigs(int pState, Settings &settings) {
-    std::string cfgPath = settings.getCfgPath();
-    std::string cfgSrc;
-    std::string cfgFile;
-
-    bool success = true;
-
-    for (game &g : settings.getGames()) {
-        if (!switchConfigs(pState, settings, g))
-            success = false;
-    }
-
-    return success;
+void CfgSwitcher::setRemGameBtn(bool state) {
+    ui->remGames->setEnabled(state);
 }

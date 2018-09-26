@@ -26,9 +26,10 @@ public:
 
 signals:
     void setSelectAll(bool state);
+    void setRemGameBtn(bool state);
 
 public slots:
-    void selectAll(bool state);
+    void selectAll(Qt::CheckState state);
 };
 
 #endif // GAMEMODEL_H

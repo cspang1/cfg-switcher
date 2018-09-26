@@ -32,6 +32,9 @@ public:
     bool switchConfigs(int pState, Settings &settings, game &game);
     bool switchConfigs(int pState, Settings &settings);
 
+public slots:
+    void setRemGameBtn(bool state);
+
 private slots:
     void on_setMainCfgBtn_clicked();
     void on_setBattCfgBtn_clicked();

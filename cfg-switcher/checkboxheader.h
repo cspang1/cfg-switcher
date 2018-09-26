@@ -13,7 +13,7 @@ public:
     void setIsChecked(bool val);
 
 signals:
-    void checkBoxClicked(bool state);
+    void checkBoxClicked(Qt::CheckState state);
 
 public slots:
     void setSelectAll(bool state);
