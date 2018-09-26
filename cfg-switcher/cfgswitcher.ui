@@ -105,12 +105,26 @@
            <property name="text">
             <string>Remove Selected Games</string>
            </property>
+           <property name="icon">
+            <iconset resource="resources.qrc">
+             <normaloff>:/icons/resources/ui/icons/remove_game.png</normaloff>:/icons/resources/ui/icons/remove_game.png</iconset>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="addGameBtn">
            <property name="text">
             <string>Add Game</string>
+           </property>
+           <property name="icon">
+            <iconset resource="resources.qrc">
+             <normaloff>:/icons/resources/ui/icons/add_game.png</normaloff>:/icons/resources/ui/icons/add_game.png</iconset>
            </property>
           </widget>
          </item>
@@ -140,6 +154,8 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

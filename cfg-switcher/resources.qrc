@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>resources/ui/icons/add_game.png</file>
+        <file>resources/ui/icons/remove_game.png</file>
+    </qresource>
+</RCC>

@@ -18,20 +18,28 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
         QApplication::exit(EXIT_FAILURE);
     }
 
+    // Initialize UI
     ui->setupUi(this);
+
+    // Initialize power status
     CurrentACStatus = getPowerStatus();
     setPowerStatusLabel();
-    ui->gamesTableView->setModel(&gameModel);
+    QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
+
+    // Initialize settings and games
     for(game &g : settings.getGames())
         addGame(QString::fromStdString(g.ID), QString::fromStdString(g.cfgPath));
+
+    // Configure game table view model
+    ui->gamesTableView->setModel(&gameModel);
     CheckboxHeader* header = new CheckboxHeader(Qt::Horizontal, ui->gamesTableView);
     header->setStretchLastSection(true);
     ui->gamesTableView->setHorizontalHeader(header);
     ui->gamesTableView->resizeColumnsToContents();
+
+    // Configure signal/slot connections
     connect(header, SIGNAL(checkBoxClicked(bool)), &gameModel, SLOT(selectAll(bool)));
     connect(&gameModel, SIGNAL(setSelectAll(bool)), header, SLOT(setSelectAll(bool)));
-
-    QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 }
 
 bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
@@ -143,6 +151,7 @@ void CfgSwitcher::addGame(QString gameName, QString gamePath) {
     gameModel.setData(index, gameName, Qt::EditRole);
     index = gameModel.index(0, 2, QModelIndex());
     gameModel.setData(index, gamePath, Qt::EditRole);
+    ui->gamesTableView->resizeColumnsToContents();
 }
 
 void CfgSwitcher::removeGame(QString gameName) {
@@ -153,6 +162,7 @@ void CfgSwitcher::removeGame(QString gameName) {
             remIndex = i;
 
     gameModel.removeRows(remIndex, 1, QModelIndex());
+    ui->gamesTableView->resizeColumnsToContents();
 }
 
 bool CfgSwitcher::switchConfigs(int pState, Settings &settings, game &game) {
