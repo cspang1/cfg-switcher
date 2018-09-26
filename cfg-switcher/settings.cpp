@@ -2,10 +2,9 @@
 #include <Windows.h>
 #include <QMessageBox>
 #include <QDir>
-#include "CfgSwitchAPI.h"
 #include "tinyxml2.h"
 #include "game.h"
-#include "Settings.h"
+#include "settings.h"
 
 Settings::Settings(QObject *parent) : QObject(parent) {
     path = QDir::currentPath().toStdString();
@@ -174,8 +173,8 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 bool Settings::removeGame(game remGame, int keep) {
     QMessageBox msg;
 	std::string gameID = remGame.ID;
-    if(keep != 2)
-		switchConfigs(keep, *this, remGame);
+    //if(keep != 2)
+        //switchConfigs(keep, *this, remGame);
 
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");

@@ -25,22 +25,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-    CfgSwitchAPI.cpp \
     cfgswitcher.cpp \
     main.cpp \
-    Settings.cpp \
     tinyxml2.cpp \
     gamemodel.cpp \
-    gamepicker.cpp
+    gamepicker.cpp \
+    settings.cpp
 
 HEADERS += \
-    CfgSwitchAPI.h \
     cfgswitcher.h \
     game.h \
-    Settings.h \
     tinyxml2.h \
     gamemodel.h \
-    gamepicker.h
+    gamepicker.h \
+    settings.h
 
 FORMS += \
         cfgswitcher.ui \

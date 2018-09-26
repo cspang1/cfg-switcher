@@ -4,7 +4,7 @@
 #include <QFileDialog>
 #include "cfgswitcher.h"
 #include "ui_cfgswitcher.h"
-#include "Settings.h"
+#include "settings.h"
 #include "gamemodel.h"
 #include "gamepicker.h"
 #include "game.h"
@@ -15,8 +15,6 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
         QMessageBox::critical(this, tr("Error"), tr("Unable to initialize settings"));
         QApplication::exit(EXIT_FAILURE);
     }
-
-    connect(&settings, SIGNAL(gameAdded()), &gameModel, SLOT(updateGamesView()));
 
     ui->setupUi(this);
     CurrentACStatus = getPowerStatus();
@@ -40,6 +38,7 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
         CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
         if (ACStatusChanged) {
             setPowerStatusLabel();
+            switchConfigs(CurrentACStatus, settings);
         }
     }
     return false;
@@ -116,4 +115,58 @@ void CfgSwitcher::addGame(QString gameName, QString gamePath) {
     gameModel.setData(index, gameName, Qt::EditRole);
     index = gameModel.index(0, 1, QModelIndex());
     gameModel.setData(index, gamePath, Qt::EditRole);
+}
+
+bool CfgSwitcher::switchConfigs(int pState, Settings &settings, game &game) {
+    std::string cfgPath = settings.getCfgPath();
+    std::string cfgSrc;
+    std::string cfgFile;
+
+    if (!game.battCfgSet || !game.mainCfgSet) {
+        //std::cerr << "Error: Can't switch " << game.ID << " config files; one or both config files not set" << std::endl;
+        return false;
+    }
+    //std::cout << "Switching " << game.ID << " config files to " << std::string(pState ? "plugged in" : "unplugged") + "..." << std::endl;
+    QFileInfo cfgFileInfo(QFile(QString::fromStdString(game.cfgPath)));
+    cfgFile = cfgFileInfo.fileName().toStdString();
+    QString filename(cfgFileInfo.fileName());
+    switch (pState) {
+    case 0:
+        cfgSrc = cfgPath + "\\" + game.ID + "\\battery\\" + cfgFile;
+        break;
+    case 1:
+        cfgSrc = cfgPath + "\\" + game.ID + "\\main\\" + cfgFile;
+        break;
+    default:
+        //std::cerr << "Error: Invalid AC line state specified" << std::endl;
+        return false;
+    }
+
+    //std::cout << cfgSrc << " to " << game.cfgPath << std::endl;
+
+    if(QFile::exists(QString::fromStdString(game.cfgPath))) {
+        QFile::remove(QString::fromStdString(game.cfgPath));
+        //std::cout << "Removing " << game.cfgPath << std::endl;
+    }
+    if(!QFile::copy(QString::fromStdString(cfgSrc), QString::fromStdString(game.cfgPath))) {
+        //std::cout << "Didn't work!" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool CfgSwitcher::switchConfigs(int pState, Settings &settings) {
+    std::string cfgPath = settings.getCfgPath();
+    std::string cfgSrc;
+    std::string cfgFile;
+
+    bool success = true;
+
+    for (game &g : settings.getGames()) {
+        if (!switchConfigs(pState, settings, g))
+            success = false;
+    }
+
+    return success;
 }
