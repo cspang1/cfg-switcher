@@ -21,7 +21,7 @@ public:
     explicit Settings(QObject *parent = nullptr);
 	bool initSettings();
 	bool addGame(std::string gameID, std::string gamePath);
-    bool removeGame(game remGame, int keep);
+    bool removeGame(std::string gameID);
 	bool gameExists(std::string gameID);
     bool setConfigs(int tgtState);
 	std::vector<game> unsetGames();

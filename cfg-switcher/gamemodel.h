@@ -7,7 +7,7 @@ class GameModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    QList< QPair<QString, QString>> games;
+    QList<QPair<QString, QString>> games;
     QList<Qt::CheckState> selects;
     const int NUM_COL = 3;
 

@@ -14,6 +14,6 @@ public:
 		battCfgSet = other.battCfgSet;
 		return *this;
 	}
-	game(std::string _ID, std::string _cfgPath, bool _mainCfgSet, bool _battCfgSet)
+    game(std::string _ID, std::string _cfgPath, bool _mainCfgSet = false, bool _battCfgSet = false)
         :ID(_ID), cfgPath(_cfgPath), mainCfgSet(_mainCfgSet), battCfgSet(_battCfgSet) { }
 };

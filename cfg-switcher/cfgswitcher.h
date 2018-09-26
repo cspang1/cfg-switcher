@@ -27,6 +27,7 @@ public:
     virtual bool nativeEventFilter(const QByteArray &eventType, void *message, long *) Q_DECL_OVERRIDE;
     ~CfgSwitcher() override;
     void addGame(QString gameName, QString gamePath);
+    void removeGame(QString gameName);
     bool switchConfigs(int pState, Settings &settings, game &game);
     bool switchConfigs(int pState, Settings &settings);
 
@@ -35,6 +36,7 @@ private slots:
     void on_setBattCfgBtn_clicked();
     void on_quitButton_clicked();
     void on_addGameBtn_clicked();
+    void on_remGames_clicked();
 };
 
 #endif // CFGSWITCHER_H

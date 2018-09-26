@@ -98,6 +98,24 @@ void CfgSwitcher::on_quitButton_clicked()
     QCoreApplication::quit();
 }
 
+
+void CfgSwitcher::on_remGames_clicked()
+{
+    QList<Qt::CheckState> selected = gameModel.getSelects();
+    for(QList<Qt::CheckState>::iterator i = selected.begin(); i != selected.end(); ++i) {
+       if(selected.at(i - selected.begin()) == Qt::Checked) {
+            QList<QPair<QString, QString>> games = gameModel.getGames();
+            QString gameName = games.at(i - selected.begin()).first;
+            //if(settings.removeGame(gameName.toStdString())) {
+                QMessageBox::information(this, tr("Removed Game"), tr("Successfully removed %1").arg(gameName), QMessageBox::Ok);
+                removeGame(gameName);
+                i = selected.erase(i);
+            //}
+        }
+    }
+}
+
+
 void CfgSwitcher::on_addGameBtn_clicked()
 {
     GamePicker gamePicker;
@@ -123,6 +141,16 @@ void CfgSwitcher::addGame(QString gameName, QString gamePath) {
     gameModel.setData(index, gameName, Qt::EditRole);
     index = gameModel.index(0, 2, QModelIndex());
     gameModel.setData(index, gamePath, Qt::EditRole);
+}
+
+void CfgSwitcher::removeGame(QString gameName) {
+    QList<QPair<QString, QString>> gameList = gameModel.getGames();
+    int remIndex = -1;
+    for(int i = 0; i < gameList.size(); i++)
+        if(!gameName.compare(gameList.at(i).first))
+            remIndex = i;
+
+    gameModel.removeRows(remIndex, 1, QModelIndex());
 }
 
 bool CfgSwitcher::switchConfigs(int pState, Settings &settings, game &game) {

@@ -99,11 +99,22 @@
         <widget class="QTableView" name="gamesTableView"/>
        </item>
        <item>
-        <widget class="QPushButton" name="addGameBtn">
-         <property name="text">
-          <string>Add Game</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QPushButton" name="remGames">
+           <property name="text">
+            <string>Remove Selected Games</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="addGameBtn">
+           <property name="text">
+            <string>Add Game</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>

@@ -18,7 +18,7 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid())
         return QVariant();
 
-    if (index.row() >= games.size() || index.row() < 0)
+    if (index.row() >= games.size() || index.row() >= selects.size() || index.row() < 0)
         return QVariant();
 
     QPair<QString, QString> game;

@@ -170,11 +170,8 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 	return updateFileStruct();
 }
 
-bool Settings::removeGame(game remGame, int keep) {
+bool Settings::removeGame(std::string gameID) {
     QMessageBox msg;
-	std::string gameID = remGame.ID;
-    //if(keep != 2)
-        //switchConfigs(keep, *this, remGame);
 
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
@@ -203,15 +200,15 @@ bool Settings::removeGame(game remGame, int keep) {
 		gameElement = gameElement->NextSiblingElement("game");
 	}
 
-    if(!QDir(QString::fromStdString(cfgPath + "\\" + remGame.ID)).removeRecursively()) {
+    if(!QDir(QString::fromStdString(cfgPath + "\\" + gameID)).removeRecursively()) {
         msg.setText("Error: Unable to delete game config directory");
         msg.exec();
         return false;
     }
 
     for (int index = 0; index < games.size(); index++) {
-		if (!remGame.ID.compare(games.at(index).ID)) {
-			games.erase(games.begin() + index);
+        if (!gameID.compare(games.at(index).ID)) {
+            games.erase(games.begin() + index);
 		}
 	}
 
