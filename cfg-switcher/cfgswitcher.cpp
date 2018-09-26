@@ -9,6 +9,7 @@
 #include "gamemodel.h"
 #include "gamepicker.h"
 #include "game.h"
+#include "checkboxheader.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
@@ -24,6 +25,10 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     ui->gamesTableView->horizontalHeader()->setStretchLastSection(true);
     for(game &g : settings.getGames())
         addGame(QString::fromStdString(g.ID), QString::fromStdString(g.cfgPath));
+    CheckboxHeader* header = new CheckboxHeader(Qt::Horizontal, ui->gamesTableView);
+    ui->gamesTableView->setHorizontalHeader(header);
+    connect(header, SIGNAL(checkBoxClicked(bool)), &gameModel, SLOT(selectAll(bool)));
+    connect(&gameModel, SIGNAL(setSelectAll(bool)), header, SLOT(setSelectAll(bool)));
 
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 }
@@ -105,7 +110,7 @@ void CfgSwitcher::on_remGames_clicked()
     int index;
     while((index = selected.indexOf(Qt::Checked)) != -1) {
         QString gameName = gameModel.getGames().at(index).first;
-        if(settings.removeGame(gameName.toStdString()))
+        if(/*settings.removeGame(gameName.toStdString())*/ true)
             removeGame(gameName);
         selected = gameModel.getSelects();
     }

@@ -46,6 +46,7 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
         return false;
 
     QPair<QString, QString> p;
+    bool state;
     switch(role) {
     case Qt::EditRole:
         p = games.value(index.row());
@@ -58,11 +59,19 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
             return false;
 
         games.replace(index.row(), p);
-        emit(dataChanged(index, index));
+        emit dataChanged(index, index);
         return true;
     case Qt::CheckStateRole:
         selects.replace(index.row(), qvariant_cast<Qt::CheckState>(value));
-        emit(dataChanged(index, index));
+        state = true;
+        for(Qt::CheckState &s : selects) {
+            if(s == Qt::Unchecked) {
+                state = false;
+                break;
+            }
+        }
+        emit setSelectAll(state);
+        emit dataChanged(index, index);
         return true;
     }
 
@@ -80,20 +89,20 @@ Qt::ItemFlags GameModel::flags(const QModelIndex &index) const {
 }
 
 QVariant GameModel::headerData(int section, Qt::Orientation orientation, int role) const {
-    if (role == Qt::DisplayRole)
-    {
+    switch(role) {
+    case Qt::DisplayRole:
         if (orientation == Qt::Horizontal) {
             switch (section)
             {
-                case 0:
-                    return tr("Select");
                 case 1:
                     return tr("Game ID");
                 case 2:
                     return tr("Config Path");
             }
         }
+        break;
     }
+
     return QVariant();
 }
 
@@ -120,6 +129,7 @@ bool GameModel::removeRows(int position, int rows, const QModelIndex &index) {
         selects.removeAt(position);
         games.removeAt(position);
     }
+    emit setSelectAll(false);
 
     endRemoveRows();
     return true;
@@ -131,4 +141,12 @@ QList< QPair<QString, QString> > GameModel::getGames() {
 
 QList<Qt::CheckState> GameModel::getSelects() {
     return selects;
+}
+
+void GameModel::selectAll(bool state) {
+    QModelIndex top = createIndex(0, 0, nullptr);
+    QModelIndex bottom = createIndex(selects.size() - 1, 0, nullptr);
+    for(Qt::CheckState &cs : selects)
+        cs = state? Qt::Checked : Qt::Unchecked;
+    emit dataChanged(top, bottom);
 }

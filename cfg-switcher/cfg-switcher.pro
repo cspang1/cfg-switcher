@@ -30,7 +30,8 @@ SOURCES += \
     tinyxml2.cpp \
     gamemodel.cpp \
     gamepicker.cpp \
-    settings.cpp
+    settings.cpp \
+    checkboxheader.cpp
 
 HEADERS += \
     cfgswitcher.h \
@@ -38,7 +39,8 @@ HEADERS += \
     tinyxml2.h \
     gamemodel.h \
     gamepicker.h \
-    settings.h
+    settings.h \
+    checkboxheader.h
 
 FORMS += \
         cfgswitcher.ui \

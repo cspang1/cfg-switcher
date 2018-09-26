@@ -23,6 +23,12 @@ public:
     bool removeRows(int position, int rows, const QModelIndex &index) override;
     QList<QPair<QString, QString>> getGames();
     QList<Qt::CheckState> getSelects();
+
+signals:
+    void setSelectAll(bool state);
+
+public slots:
+    void selectAll(bool state);
 };
 
 #endif // GAMEMODEL_H
