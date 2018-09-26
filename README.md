@@ -1,5 +1,5 @@
 # CfgSwitcher
-## v1.0.0-beta
+## v1.1.0-beta
 ### Description
 This is the initial beta release of the CfgSwitcher application, the goal of which is to enable automatic switching of application (specifically game) configuration files based upon whether a laptop is on battery or wall power. 
 
