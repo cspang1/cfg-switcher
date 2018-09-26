@@ -102,16 +102,12 @@ void CfgSwitcher::on_quitButton_clicked()
 void CfgSwitcher::on_remGames_clicked()
 {
     QList<Qt::CheckState> selected = gameModel.getSelects();
-    for(QList<Qt::CheckState>::iterator i = selected.begin(); i != selected.end(); ++i) {
-       if(selected.at(i - selected.begin()) == Qt::Checked) {
-            QList<QPair<QString, QString>> games = gameModel.getGames();
-            QString gameName = games.at(i - selected.begin()).first;
-            //if(settings.removeGame(gameName.toStdString())) {
-                QMessageBox::information(this, tr("Removed Game"), tr("Successfully removed %1").arg(gameName), QMessageBox::Ok);
-                removeGame(gameName);
-                i = selected.erase(i);
-            //}
-        }
+    int index;
+    while((index = selected.indexOf(Qt::Checked)) != -1) {
+        QString gameName = gameModel.getGames().at(index).first;
+        if(settings.removeGame(gameName.toStdString()))
+            removeGame(gameName);
+        selected = gameModel.getSelects();
     }
 }
 
