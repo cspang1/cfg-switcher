@@ -203,6 +203,7 @@ void CfgSwitcher::on_remGames_clicked()
             removeGame(gameName);
         selected = gameModel.getSelects();
     }
+    setRemGameBtn(false);
 }
 
 
