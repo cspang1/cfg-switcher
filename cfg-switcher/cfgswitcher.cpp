@@ -77,6 +77,8 @@ void CfgSwitcher::on_setMainCfgBtn_clicked()
         QMessageBox::critical(this, tr("Error"), tr("Unable to set main configuration files"));
         QApplication::exit(EXIT_FAILURE);
     }
+    else
+        QMessageBox::information(this, tr("Success!"), tr("Successfully set config files for main state"), QMessageBox::Ok);
 }
 
 void CfgSwitcher::on_setBattCfgBtn_clicked()
@@ -85,6 +87,9 @@ void CfgSwitcher::on_setBattCfgBtn_clicked()
         QMessageBox::critical(this, tr("Error"), tr("Unable to set battery configuration files"));
 
     }
+    else
+        QMessageBox::information(this, tr("Success!"), tr("Successfully set config files for on-battery state"), QMessageBox::Ok);
+
 }
 
 void CfgSwitcher::on_quitButton_clicked()
