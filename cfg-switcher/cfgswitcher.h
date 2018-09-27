@@ -29,8 +29,9 @@ public:
     ~CfgSwitcher() override;
     void addGame(QString gameName, QString gamePath, bool mainCfgSet, bool battCfgSet);
     void removeGame(QString gameName);
-    bool switchConfigs(int pState, Settings &settings, Game &game);
-    bool switchConfigs(int pState, Settings &settings);
+    bool switchConfigs(int pState, Game &game);
+    bool switchConfigs(int pState);
+    bool setConfigs(int pState);
 
 public slots:
     void setGameBtns(bool state);

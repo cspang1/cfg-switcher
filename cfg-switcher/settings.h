@@ -20,6 +20,7 @@ public:
     bool addGame(QString gameID, QString gamePath);
     bool removeGame(QString gameID);
     bool gameExists(QString gameID);
+    bool setConfig(int tgtState, Game game);
     bool setConfigs(int tgtState);
     QList<Game> unsetGames();
     QList<Game>& getGames() { return games; }

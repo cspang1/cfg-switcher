@@ -79,9 +79,9 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
         }
 
         if(selects.indexOf(Qt::Checked) == -1)
-            emit setRemGameBtn(false);
+            emit setGameBtns(false);
         else
-            emit setRemGameBtn(true);
+            emit setGameBtns(true);
 
         emit setSelectAll(state);
         emit dataChanged(index, index);
@@ -162,7 +162,6 @@ QList<Qt::CheckState> GameModel::getSelects() {
 }
 
 void GameModel::selectAll(Qt::CheckState state) {
-    //for(Qt::CheckState &cs : selects) {
     for(int i = 0; i < selects.size(); i++) {
         QModelIndex index = this->index(i, 0, QModelIndex());
         setData(index, state, Qt::CheckStateRole);

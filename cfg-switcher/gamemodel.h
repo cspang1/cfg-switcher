@@ -27,7 +27,7 @@ public:
 
 signals:
     void setSelectAll(bool state);
-    void setRemGameBtn(bool state);
+    void setGameBtns(bool state);
 
 public slots:
     void selectAll(Qt::CheckState state);

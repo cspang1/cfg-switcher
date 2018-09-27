@@ -16,8 +16,6 @@ bool Settings::initSettings() {
 	tinyxml2::XMLDocument settings;
     tinyxml2::XMLError loaded = settings.LoadFile(settingsPath.toStdString().c_str());
 	if (loaded != tinyxml2::XML_SUCCESS) {
-        msg.setText("Couldn't find settings.xml file...");
-        msg.exec();
 		if (!createSettingsFile()) {
             msg.setText("Error creating new settings file");
             msg.exec();
@@ -59,8 +57,6 @@ bool Settings::initSettings() {
 	}
 
     if(!QDir(cfgPath).exists()) {
-        msg.setText(cfgPath + " doesn't exist!");
-        msg.exec();
         if(!createFileStruct())
             return false;
     }
@@ -114,7 +110,7 @@ bool Settings::updateFileStruct() {
         gbdCreate.mkpath(tempPath);
         gbdCreate.setPath(tempPath);
         if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists()) {
-            msg.setText("Error creating dirs?");
+            msg.setText("Error creating game config directories");
             msg.exec();
 		}
     }
@@ -223,74 +219,86 @@ bool Settings::gameExists(QString gameID) {
 	return false;
 }
 
-bool Settings::setConfigs(int tgtState) {
+bool Settings::setConfig(int tgtState, Game game) {
     QMessageBox msg;
     QString cfgDest;
     QString cfgFile;
 
-	tinyxml2::XMLDocument settings;
-	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
-	if (loaded != tinyxml2::XML_SUCCESS) {
+    tinyxml2::XMLDocument settings;
+    tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
+    if (loaded != tinyxml2::XML_SUCCESS) {
         msg.setText("Error: Unable to load settings.xml file");
         msg.exec();
         return false;
-	}
-	tinyxml2::XMLNode* rootNode = settings.FirstChild();
-	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
-	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
+    }
+    tinyxml2::XMLNode* rootNode = settings.FirstChild();
+    tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
+    tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
 
-    for (Game &g : games) {
-        QFileInfo fileInfo(QFile(g.cfgPath).fileName());
-        cfgFile = fileInfo.fileName();
-		switch (tgtState) {
-            case 0:
-                cfgDest = cfgPath + "\\" + g.ID + "\\battery\\" + cfgFile;
-                break;
-            case 1:
-				cfgDest = cfgPath + "\\" + g.ID + "\\main\\" + cfgFile;
-				break;
-			default:
-                msg.setText("Error: Invalid AClineStatus provided");
-                msg.exec();
-				return false;
-		}
-
-        if(QFile::exists(cfgDest))
-            QFile::remove(cfgDest);
-        if(!QFile::copy(g.cfgPath, cfgDest)) {
-            msg.setText("Error: Unable to copy config file");
+    QFileInfo fileInfo(QFile(game.cfgPath).fileName());
+    cfgFile = fileInfo.fileName();
+    switch (tgtState) {
+        case 0:
+            cfgDest = cfgPath + "\\" + game.ID + "\\battery\\" + cfgFile;
+            break;
+        case 1:
+            cfgDest = cfgPath + "\\" + game.ID + "\\main\\" + cfgFile;
+            break;
+        default:
+            msg.setText("Error: Invalid AClineStatus provided");
             msg.exec();
             return false;
-        }
-		else {
-			while (g.ID.compare(gameElement->FirstChildElement("id")->GetText()))
-				gameElement = gameElement->NextSiblingElement("game");
-
-			switch (tgtState) {
-                case 0:
-                    g.battCfgSet = true;
-                    gameElement->FirstChildElement("battcfgset")->SetAttribute("value", g.battCfgSet);
-                    break;
-                case 1:
-					g.mainCfgSet = true;
-					gameElement->FirstChildElement("maincfgset")->SetAttribute("value", g.mainCfgSet);
-					break;
-				default:
-                    msg.setText("Error: Invalid AClineStatus provided");
-                    msg.exec();
-                    return false;
-			}
-		}
     }
 
-	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
-	if (saved != tinyxml2::XML_SUCCESS) {
+    if(QFile::exists(cfgDest))
+        QFile::remove(cfgDest);
+    if(!QFile::copy(game.cfgPath, cfgDest)) {
+        msg.setText("Error: Unable to copy config file");
+        msg.exec();
+        return false;
+    }
+    else {
+        while (game.ID.compare(gameElement->FirstChildElement("id")->GetText()))
+            gameElement = gameElement->NextSiblingElement("game");
+
+        switch (tgtState) {
+            case 0:
+                game.battCfgSet = true;
+                gameElement->FirstChildElement("battcfgset")->SetAttribute("value", game.battCfgSet);
+                break;
+            case 1:
+                game.mainCfgSet = true;
+                gameElement->FirstChildElement("maincfgset")->SetAttribute("value", game.mainCfgSet);
+                break;
+            default:
+                msg.setText("Error: Invalid AClineStatus provided");
+                msg.exec();
+                return false;
+        }
+    }
+
+    tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
+    if (saved != tinyxml2::XML_SUCCESS) {
         msg.setText("Error: Unable to save settings.xml file");
         msg.exec();
         return false;
-	}
+    }
 
-	return true;
+    return true;
+
+}
+
+bool Settings::setConfigs(int tgtState) {
+    QMessageBox msg;
+    bool success = true;;
+    for (Game &g : games)
+        if(!setConfig(tgtState, g)) {
+            msg.setText("Error: Unable to set configs for " + g.ID);
+            msg.exec();
+            success = false;
+        }
+
+    return success;
 }
 
 QList<Game> Settings::unsetGames() {

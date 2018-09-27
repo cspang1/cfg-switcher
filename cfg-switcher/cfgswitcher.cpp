@@ -11,8 +11,6 @@
 #include "game.h"
 #include "checkboxheader.h"
 
-#define DEBUG
-
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
     if(!settings.initSettings()) {
@@ -46,7 +44,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     // Configure signal/slot connections
     connect(header, SIGNAL(checkBoxClicked(Qt::CheckState)), &gameModel, SLOT(selectAll(Qt::CheckState)));
     connect(&gameModel, SIGNAL(setSelectAll(bool)), header, SLOT(setSelectAll(bool)));
-    connect(&gameModel, SIGNAL(setRemGameBtn(bool)), this, SLOT(setGameBtns(bool)));
+    connect(&gameModel, SIGNAL(setGameBtns(bool)), this, SLOT(setGameBtns(bool)));
 }
 
 void CfgSwitcher::addGame(QString gameName, QString gamePath, bool mainCfgSet, bool battCfgSet) {
@@ -75,7 +73,41 @@ void CfgSwitcher::removeGame(QString gameName) {
     ui->gamesTableView->resizeColumnToContents(1);
 }
 
-bool CfgSwitcher::switchConfigs(int pState, Settings &settings, Game &game) {
+
+bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
+{
+    BYTE ACLineStatus = getPowerStatus();
+    bool ACStatusChanged = false;
+    MSG *msg = static_cast< MSG * >( message );
+    if(msg->message == WM_POWERBROADCAST) {
+        ACLineStatus = getPowerStatus();
+        ACStatusChanged = CurrentACStatus != ACLineStatus;
+        CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
+        if (ACStatusChanged) {
+            setPowerStatusLabel();
+            if(!switchConfigs(CurrentACStatus))
+                QMessageBox::critical(this, tr("Error"), tr("Unable to switch config files"));
+        }
+    }
+    return false;
+}
+
+bool CfgSwitcher::switchConfigs(int pState) {
+    QString cfgPath = settings.getCfgPath();
+    QString cfgSrc;
+    QString cfgFile;
+
+    bool success = true;
+
+    for (Game &g : settings.getGames()) {
+        if (!switchConfigs(pState, g))
+            success = false;
+    }
+
+    return success;
+}
+
+bool CfgSwitcher::switchConfigs(int pState, Game &game) {
     QString cfgPath = settings.getCfgPath();
     QString cfgSrc;
     QString cfgFile;
@@ -114,36 +146,14 @@ bool CfgSwitcher::switchConfigs(int pState, Settings &settings, Game &game) {
     return true;
 }
 
-bool CfgSwitcher::switchConfigs(int pState, Settings &settings) {
-    QString cfgPath = settings.getCfgPath();
-    QString cfgSrc;
-    QString cfgFile;
-
-    bool success = true;
-
-    for (Game &g : settings.getGames()) {
-        if (!switchConfigs(pState, settings, g))
-            success = false;
+BYTE CfgSwitcher::getPowerStatus() {
+    SYSTEM_POWER_STATUS lpSystemPowerStatus;
+    if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
+        QMessageBox::critical(this, tr("Error"), tr("Unable to get system power status"));
+        QApplication::exit(EXIT_FAILURE);
     }
 
-    return success;
-}
-
-bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
-{
-    BYTE ACLineStatus = getPowerStatus();
-    bool ACStatusChanged = false;
-    MSG *msg = static_cast< MSG * >( message );
-    if(msg->message == WM_POWERBROADCAST) {
-        ACLineStatus = getPowerStatus();
-        ACStatusChanged = CurrentACStatus != ACLineStatus;
-        CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
-        if (ACStatusChanged) {
-            setPowerStatusLabel();
-            switchConfigs(CurrentACStatus, settings);
-        }
-    }
-    return false;
+    return lpSystemPowerStatus.ACLineStatus;
 }
 
 void CfgSwitcher::setPowerStatusLabel() {
@@ -157,16 +167,6 @@ void CfgSwitcher::setPowerStatusLabel() {
     }
 }
 
-BYTE CfgSwitcher::getPowerStatus() {
-    SYSTEM_POWER_STATUS lpSystemPowerStatus;
-    if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
-        QMessageBox::critical(this, tr("Error"), tr("Unable to get system power status"));
-        QApplication::exit(EXIT_FAILURE);
-    }
-
-    return lpSystemPowerStatus.ACLineStatus;
-}
-
 CfgSwitcher::~CfgSwitcher()
 {
     delete ui;
@@ -175,31 +175,34 @@ CfgSwitcher::~CfgSwitcher()
 
 void CfgSwitcher::on_setMainCfgBtn_clicked()
 {
-    if(!settings.setConfigs(1)) {
-        QMessageBox::critical(this, tr("Error"), tr("Unable to set main configuration files"));
-    }
-    else {
-        for(int i = 0; i < settings.getGames().size(); i++) {
-            QModelIndex index = gameModel.index(i, 3, QModelIndex());
-            gameModel.setData(index, true, Qt::EditRole);
-        }
-        QMessageBox::information(this, tr("Success!"), tr("Successfully set config files for main state"), QMessageBox::Ok);
-    }
+    setConfigs(1);
 }
 
 void CfgSwitcher::on_setBattCfgBtn_clicked()
 {
-    if(!settings.setConfigs(0)) {
-        QMessageBox::critical(this, tr("Error"), tr("Unable to set battery configuration files"));
+    setConfigs(0);
+}
 
-    }
-    else {
-        for(int i = 0; i < settings.getGames().size(); i++) {
-            QModelIndex index = gameModel.index(i, 4, QModelIndex());
+bool CfgSwitcher::setConfigs(int pState) {
+    QString stateStr = pState == 0 ? tr("battery") : tr("main");
+    QList<Qt::CheckState> selects = gameModel.getSelects();
+    QList<Game> games = gameModel.getGames();
+    for(int row = 0; row < selects.size(); row++) {
+        if(selects.at(row) == Qt::Checked) {
+            if(!settings.setConfig(pState, games.at(row))) {
+                QMessageBox::critical(this, tr("Error"), tr("Unable to set %1 configuration files").arg(stateStr));
+                return false;
+            }
+            int col = pState == 0 ? 4 : 3;
+            QModelIndex index = gameModel.index(row, col, QModelIndex());
             gameModel.setData(index, true, Qt::EditRole);
         }
-        QMessageBox::information(this, tr("Success!"), tr("Successfully set config files for on-battery state"), QMessageBox::Ok);
     }
+
+    gameModel.selectAll(Qt::Unchecked);
+    QMessageBox::information(this, tr("Success!"), tr("Successfully set config files for %1 state").arg(stateStr), QMessageBox::Ok);
+
+    return true;
 }
 
 void CfgSwitcher::on_quitButton_clicked()
@@ -212,15 +215,20 @@ void CfgSwitcher::on_remGames_clicked()
 {
     QList<Qt::CheckState> selected = gameModel.getSelects();
     int index;
+    bool success = true;
     while((index = selected.indexOf(Qt::Checked)) != -1) {
         QString gameName = gameModel.getGames().at(index).ID;
-        #ifndef DEBUG
         if(settings.removeGame(gameName))
-        #endif
             removeGame(gameName);
+        else
+            success = false;
         selected = gameModel.getSelects();
     }
     setGameBtns(false);
+    if(!success)
+        QMessageBox::critical(this, tr("Error"), tr("Failed to remove some or all games"), QMessageBox::Ok);
+    else
+        QMessageBox::information(this, tr("Success"), tr("Successfully removed game(s)"), QMessageBox::Ok);
 }
 
 
