@@ -10,7 +10,7 @@ class GameModel : public QAbstractTableModel
 private:
     QList<Game> games;
     QList<Qt::CheckState> selects;
-    const int NUM_COL = 5;
+    const int NUM_COL = 6;
 
 public:
     GameModel(QObject *parent);

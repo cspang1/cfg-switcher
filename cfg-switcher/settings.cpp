@@ -38,21 +38,19 @@ bool Settings::initSettings() {
     settingsPath = path + "\\settings.xml";
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
-    QString gameID;
-    QString gamePath;
-	bool mainCfgSet;
-	bool battCfgSet;
-	tinyxml2::XMLElement* element;
+
 	while (gameElement != nullptr) {
-		element = gameElement->FirstChildElement("id");
-		gameID = element->GetText();
+        tinyxml2::XMLElement* element = gameElement->FirstChildElement("id");
+        QString gameID = element->GetText();
 		element = gameElement->FirstChildElement("path");
-		gamePath = element->GetText();
+        QString gamePath = element->GetText();
 		element = gameElement->FirstChildElement("maincfgset");
-		mainCfgSet = element->BoolAttribute("value");
-		element = gameElement->FirstChildElement("battcfgset");
-		battCfgSet = element->BoolAttribute("value");
-        games.push_back(Game(gameID, gamePath, mainCfgSet, battCfgSet));
+        bool mainCfgSet = element->BoolAttribute("value");
+        element = gameElement->FirstChildElement("battcfgset");
+        bool battCfgSet = element->BoolAttribute("value");
+        element = gameElement->FirstChildElement("enabled");
+        bool enabled = element->BoolAttribute("value");
+        games.push_back(Game(gameID, gamePath, mainCfgSet, battCfgSet, enabled));
 		gameElement = gameElement->NextSiblingElement("game");
 	}
 
@@ -69,7 +67,7 @@ bool Settings::createSettingsFile() {
 	tinyxml2::XMLNode* rootNode = settings.NewElement("settings");
 	settings.InsertFirstChild(rootNode);
 	tinyxml2::XMLElement* element = settings.NewElement("version");
-	element->SetText(0.1f);
+    element->SetText("2.0.0");
 	rootNode->InsertEndChild(element);
 	element = settings.NewElement("path");
     element->SetText(path.toStdString().c_str());
@@ -131,7 +129,8 @@ bool Settings::addGame(QString gameID, QString gameCfgPath) {
         msg.setText("Error: Unable to load settings.xml file");
         msg.exec();
         return false;
-	}
+    }
+
 	tinyxml2::XMLNode* rootNode = settings.FirstChild();
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = settings.NewElement("game");
@@ -150,8 +149,11 @@ bool Settings::addGame(QString gameID, QString gameCfgPath) {
 	element->SetAttribute("value", false);
 	gameElement->InsertEndChild(element);
 	element = settings.NewElement("battcfgset");
-	element->SetAttribute("value", false);
-	gameElement->InsertEndChild(element);
+    element->SetAttribute("value", false);
+    gameElement->InsertEndChild(element);
+    element = settings.NewElement("enabled");
+    element->SetAttribute("value", false);
+    gameElement->InsertEndChild(element);
 	gamesElement->InsertEndChild(gameElement);
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
 	if (saved != tinyxml2::XML_SUCCESS) {
@@ -160,7 +162,7 @@ bool Settings::addGame(QString gameID, QString gameCfgPath) {
         return false;
 	}
 
-    games.push_back(Game(gameID, gameCfgPath, false, false));
+    games.push_back(Game(gameID, gameCfgPath));
 
 	return updateFileStruct();
 }
@@ -168,6 +170,7 @@ bool Settings::addGame(QString gameID, QString gameCfgPath) {
 bool Settings::removeGame(QString gameID) {
     QMessageBox msg;
 
+    // Delete game from settings file
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
@@ -195,12 +198,14 @@ bool Settings::removeGame(QString gameID) {
 		gameElement = gameElement->NextSiblingElement("game");
 	}
 
+    // Delete game config directory
     if(!QDir(cfgPath + "\\" + gameID).removeRecursively()) {
         msg.setText("Error: Unable to delete game config directory");
         msg.exec();
         return false;
     }
 
+    // Remove game from games list
     for (int index = 0; index < games.size(); index++) {
         if (!gameID.compare(games.at(index).ID)) {
             games.erase(games.begin() + index);
@@ -296,6 +301,51 @@ bool Settings::setConfigs(int tgtState) {
             msg.setText("Error: Unable to set configs for " + g.ID);
             msg.exec();
             success = false;
+        }
+
+    return success;
+}
+
+bool Settings::setStatus(bool enabled, Game game) {
+    QMessageBox msg;
+    QString cfgDest;
+    QString cfgFile;
+
+    tinyxml2::XMLDocument settings;
+    tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
+    if (loaded != tinyxml2::XML_SUCCESS) {
+        msg.setText("Error: Unable to load settings.xml file");
+        msg.exec();
+        return false;
+    }
+    tinyxml2::XMLNode* rootNode = settings.FirstChild();
+    tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
+    tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
+
+    while (game.ID.compare(gameElement->FirstChildElement("id")->GetText()))
+        gameElement = gameElement->NextSiblingElement("game");
+
+    game.enabled = enabled;
+    gameElement->FirstChildElement("enabled")->SetAttribute("value", enabled);
+
+    tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
+    if (saved != tinyxml2::XML_SUCCESS) {
+        msg.setText("Error: Unable to save settings.xml file");
+        msg.exec();
+        return false;
+    }
+
+    return true;
+}
+
+bool Settings::setStatuses(bool enabled) {
+    QMessageBox msg;
+    bool success = true;
+    for(Game &g : games)
+        if(!setStatus(enabled, g)) {
+            success = false;
+            msg.setText("Error: Unable to set status of " + g.ID);
+            msg.exec();
         }
 
     return success;

@@ -20,9 +20,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
 
     // Initialize UI
     ui->setupUi(this);
-    ui->remGames->setEnabled(false);
-    ui->setBattCfgBtn->setEnabled(false);
-    ui->setMainCfgBtn->setEnabled(false);
+    setGameBtns(false);
 
     // Initialize power status
     CurrentACStatus = getPowerStatus();
@@ -31,7 +29,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
 
     // Initialize settings and games
     for(Game &g : settings.getGames())
-        addGame(g.ID, g.cfgPath, g.mainCfgSet, g.battCfgSet);
+        addGame(g);
 
     // Configure game table view model
     ui->gamesTableView->setModel(&gameModel);
@@ -47,18 +45,20 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     connect(&gameModel, SIGNAL(setGameBtns(bool)), this, SLOT(setGameBtns(bool)));
 }
 
-void CfgSwitcher::addGame(QString gameName, QString gamePath, bool mainCfgSet, bool battCfgSet) {
+void CfgSwitcher::addGame(Game game) {
     gameModel.insertRows(0, 1, QModelIndex());
     QModelIndex index = gameModel.index(0, 0, QModelIndex());
     gameModel.setData(index, Qt::Unchecked, Qt::CheckStateRole);
     index = gameModel.index(0, 1, QModelIndex());
-    gameModel.setData(index, gameName, Qt::EditRole);
+    gameModel.setData(index, game.ID, Qt::EditRole);
     index = gameModel.index(0, 2, QModelIndex());
-    gameModel.setData(index, gamePath, Qt::EditRole);
+    gameModel.setData(index, game.cfgPath, Qt::EditRole);
     index = gameModel.index(0, 3, QModelIndex());
-    gameModel.setData(index, mainCfgSet, Qt::EditRole);
+    gameModel.setData(index, game.mainCfgSet, Qt::EditRole);
     index = gameModel.index(0, 4, QModelIndex());
-    gameModel.setData(index, battCfgSet, Qt::EditRole);
+    gameModel.setData(index, game.battCfgSet, Qt::EditRole);
+    index = gameModel.index(0, 5, QModelIndex());
+    gameModel.setData(index, game.enabled, Qt::EditRole);
     ui->gamesTableView->resizeColumnToContents(1);
 }
 
@@ -92,16 +92,11 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
 }
 
 bool CfgSwitcher::switchConfigs(int pState) {
-    QString cfgPath = settings.getCfgPath();
-    QString cfgSrc;
-    QString cfgFile;
-
     bool success = true;
-
-    for (Game &g : settings.getGames()) {
-        if (!switchConfigs(pState, g))
-            success = false;
-    }
+    for (Game &g : gameModel.getGames())
+        if(g.enabled)
+            if (!switchConfigs(pState, g))
+                success = false;
 
     return success;
 }
@@ -175,15 +170,16 @@ void CfgSwitcher::on_setBattCfgBtn_clicked()
     setConfigs(0);
 }
 
-bool CfgSwitcher::setConfigs(int pState) {
+void CfgSwitcher::setConfigs(int pState) {
     QString stateStr = pState == 0 ? tr("battery") : tr("main");
     QList<Qt::CheckState> selects = gameModel.getSelects();
     QList<Game> games = gameModel.getGames();
+    bool success = true;
     for(int row = 0; row < selects.size(); row++) {
         if(selects.at(row) == Qt::Checked) {
             if(!settings.setConfig(pState, games.at(row))) {
                 QMessageBox::critical(this, tr("Error"), tr("Unable to set %1 configuration files").arg(stateStr));
-                return false;
+                success = false;
             }
             int col = pState == 0 ? 4 : 3;
             QModelIndex index = gameModel.index(row, col, QModelIndex());
@@ -192,9 +188,11 @@ bool CfgSwitcher::setConfigs(int pState) {
     }
 
     gameModel.selectAll(Qt::Unchecked);
-    QMessageBox::information(this, tr("Success!"), tr("Successfully set config files for %1 state").arg(stateStr), QMessageBox::Ok);
+    if(success)
+        QMessageBox::information(this, tr("Success"), tr("Successfully set config files for %1 state").arg(stateStr), QMessageBox::Ok);
+    else
+        QMessageBox::information(this, tr("Error"), tr("Unable to set some or all config files"), QMessageBox::Ok);
 
-    return true;
 }
 
 void CfgSwitcher::on_quitButton_clicked()
@@ -234,7 +232,7 @@ void CfgSwitcher::on_addGameBtn_clicked()
         gamePath = gamePicker.getGamePath();
 
         if(settings.addGame(gameName, gamePath))
-            addGame(gameName, gamePath, false, false);
+            addGame(Game(gameName, gamePath));
         else
             QMessageBox::critical(this, tr("Error"), tr("Unable to add %1").arg(gameName));
     }
@@ -244,4 +242,49 @@ void CfgSwitcher::setGameBtns(bool state) {
     ui->remGames->setEnabled(state);
     ui->setBattCfgBtn->setEnabled(state);
     ui->setMainCfgBtn->setEnabled(state);
+    ui->enableBtn->setEnabled(state);
+    ui->disableBtn->setEnabled(state);
 }
+
+void CfgSwitcher::on_enableBtn_clicked() {
+    setStatus(true);
+}
+
+void CfgSwitcher::on_disableBtn_clicked() {
+    setStatus(false);
+}
+
+void CfgSwitcher::setStatus(bool status) {
+    QList<Qt::CheckState> selects = gameModel.getSelects();
+    QList<Game> games = gameModel.getGames();
+    bool success = true;
+    for(int row = 0; row < selects.size(); row++) {
+        if(selects.at(row) == Qt::Checked) {
+            Game game = games.at(row);
+            if(game.enabled == status)
+                continue;
+            else if(status && (!game.battCfgSet || !game.mainCfgSet)) {
+                QMessageBox::information(this, tr("Error"), tr("%1 config(s) unset; unable to enable switching").arg(game.ID), QMessageBox::Ok);
+                success = false;
+            }
+            else if(!settings.setStatus(status, game)) {
+                QMessageBox::critical(this, tr("Error"), tr("Unable to set %1 status").arg(game.ID));
+                success = false;
+            }
+            else {
+                QModelIndex index = gameModel.index(row, 5, QModelIndex());
+                gameModel.setData(index, status, Qt::EditRole);
+            }
+        }
+    }
+
+    gameModel.selectAll(Qt::Unchecked);
+    QString stateStr = status ? tr("enabled") : tr("disabled");
+    if(!success)
+        QMessageBox::critical(this, tr("Error"), tr("Failed to enable some or all games"), QMessageBox::Ok);
+    else
+        QMessageBox::information(this, tr("Success"), tr("Successfully %1 game(s)").arg(stateStr), QMessageBox::Ok);
+
+}
+
+

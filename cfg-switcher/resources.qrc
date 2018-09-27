@@ -4,5 +4,7 @@
         <file>resources/ui/icons/remove_game.png</file>
         <file>resources/ui/icons/battery.png</file>
         <file>resources/ui/icons/main.png</file>
+        <file>resources/ui/icons/disabled.png</file>
+        <file>resources/ui/icons/enabled.png</file>
     </qresource>
 </RCC>

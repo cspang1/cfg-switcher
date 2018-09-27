@@ -32,6 +32,8 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
             return game.mainCfgSet;
         else if(index.column() == 4)
             return game.battCfgSet;
+        else if(index.column() == 5)
+            return game.enabled;
         else
             return QVariant();
     case Qt::CheckStateRole:
@@ -57,11 +59,13 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
         if (index.column() == 1)
             game.ID = value.toString();
         else if (index.column() == 2)
-            game.cfgPath= value.toString();
+            game.cfgPath = value.toString();
         else if (index.column() == 3)
-            game.mainCfgSet= value.toBool();
+            game.mainCfgSet = value.toBool();
         else if (index.column() == 4)
-            game.battCfgSet= value.toBool();
+            game.battCfgSet = value.toBool();
+        else if (index.column() == 5)
+            game.enabled = value.toBool();
         else
             return false;
 
@@ -116,7 +120,8 @@ QVariant GameModel::headerData(int section, Qt::Orientation orientation, int rol
                 return tr("Main Config Set");
             case 4:
                 return tr("Battery Config Set");
-            }
+            case 5:
+                return tr("Enabled");            }
         }
         break;
     }
@@ -143,7 +148,7 @@ bool GameModel::removeRows(int position, int rows, const QModelIndex &index) {
     Q_UNUSED(index);
     beginRemoveRows(QModelIndex(), position, position+rows-1);
 
-    for (int row=0; row < rows; ++row) {
+    for (int row = 0; row < rows; ++row) {
         selects.removeAt(position);
         games.removeAt(position);
     }

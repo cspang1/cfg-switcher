@@ -22,10 +22,13 @@ public:
     bool gameExists(QString gameID);
     bool setConfig(int tgtState, Game game);
     bool setConfigs(int tgtState);
+    bool setStatus(bool enabled, Game game);
+    bool setStatuses(bool enabled);
     QList<Game> unsetGames();
     QList<Game>& getGames() { return games; }
     QString getPath() { return path; }
     QString getCfgPath() { return cfgPath; }
+
 
 public slots:
 };
