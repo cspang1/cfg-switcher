@@ -208,16 +208,6 @@ bool Settings::removeGame(QString gameID) {
 	return true;
 }
 
-// Re-implement to check if explicitly exists in settings file?
-/*bool Settings::gameExists(QString gameID) {
-    for (Game &g : games) {
-		if (!(gameID.compare(g.ID)))
-			return true;
-	}
-
-	return false;
-}*/
-
 bool Settings::setConfig(int tgtState, Game game) {
     QMessageBox msg;
     QString cfgDest;
