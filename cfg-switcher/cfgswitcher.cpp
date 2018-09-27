@@ -85,8 +85,7 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
         CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
         if (ACStatusChanged) {
             setPowerStatusLabel();
-            if(!switchConfigs(CurrentACStatus))
-                QMessageBox::critical(this, tr("Error"), tr("Unable to switch config files"));
+            switchConfigs(CurrentACStatus);
         }
     }
     return false;
@@ -113,10 +112,9 @@ bool CfgSwitcher::switchConfigs(int pState, Game &game) {
     QString cfgFile;
 
     if (!game.battCfgSet || !game.mainCfgSet) {
-        //std::cerr << "Error: Can't switch " << game.ID << " config files; one or both config files not set" << std::endl;
+        QMessageBox::warning(this, tr("Warning"), tr("One or both %1 config files not set; files won't be switched").arg(game.ID));
         return false;
     }
-    //std::cout << "Switching " << game.ID << " config files to " << std::string(pState ? "plugged in" : "unplugged") + "..." << std::endl;
     QFileInfo cfgFileInfo(QFile(game.cfgPath));
     cfgFile = cfgFileInfo.fileName();
     QString filename(cfgFileInfo.fileName());
@@ -127,19 +125,13 @@ bool CfgSwitcher::switchConfigs(int pState, Game &game) {
     case 1:
         cfgSrc = cfgPath + "\\" + game.ID + "\\main\\" + cfgFile;
         break;
-    default:
-        //std::cerr << "Error: Invalid AC line state specified" << std::endl;
-        return false;
     }
-
-    //std::cout << cfgSrc << " to " << game.cfgPath << std::endl;
 
     if(QFile::exists(game.cfgPath)) {
         QFile::remove(game.cfgPath);
-        //std::cout << "Removing " << game.cfgPath << std::endl;
     }
     if(!QFile::copy(cfgSrc, game.cfgPath)) {
-        //std::cout << "Didn't work!" << std::endl;
+        QMessageBox::critical(this, tr("Error"), tr("Unable to copy %1 config files").arg(game.ID));
         return false;
     }
 

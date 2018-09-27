@@ -5,7 +5,4 @@
         <file>resources/ui/icons/battery.png</file>
         <file>resources/ui/icons/main.png</file>
     </qresource>
-    <qresource prefix="/">
-        <file>resources/cfg_switcher.png</file>
-    </qresource>
 </RCC>
