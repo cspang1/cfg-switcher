@@ -31,8 +31,9 @@ public:
     void removeGame(QString gameName);
     bool switchConfigs(int pState, Game &game);
     bool switchConfigs(int pState);
+    bool switchConfigs();
     void setConfigs(int pState);
-    void setStatus(bool status);
+    void setStatus(bool status);    
 
 public slots:
     void setGameBtns(bool state);

@@ -25,6 +25,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     // Initialize power status
     CurrentACStatus = getPowerStatus();
     setPowerStatusLabel();
+    switchConfigs();
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 
     // Initialize settings and games
@@ -91,6 +92,17 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
     return false;
 }
 
+BYTE CfgSwitcher::getPowerStatus() {
+    SYSTEM_POWER_STATUS lpSystemPowerStatus;
+    if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
+        QMessageBox::critical(this, tr("Error"), tr("Unable to get system power status"));
+        QApplication::exit(EXIT_FAILURE);
+    }
+
+bool CfgSwitcher::switchConfigs() {
+    return switchConfigs(CurrentACStatus);
+}
+
 bool CfgSwitcher::switchConfigs(int pState) {
     bool success = true;
     for (Game &g : gameModel.getGames())
@@ -131,16 +143,6 @@ bool CfgSwitcher::switchConfigs(int pState, Game &game) {
     }
 
     return true;
-}
-
-BYTE CfgSwitcher::getPowerStatus() {
-    SYSTEM_POWER_STATUS lpSystemPowerStatus;
-    if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
-        QMessageBox::critical(this, tr("Error"), tr("Unable to get system power status"));
-        QApplication::exit(EXIT_FAILURE);
-    }
-
-    return lpSystemPowerStatus.ACLineStatus;
 }
 
 void CfgSwitcher::setPowerStatusLabel() {
