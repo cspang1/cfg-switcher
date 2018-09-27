@@ -23,6 +23,8 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     // Initialize UI
     ui->setupUi(this);
     ui->remGames->setEnabled(false);
+    ui->setBattCfgBtn->setEnabled(false);
+    ui->setMainCfgBtn->setEnabled(false);
 
     // Initialize power status
     CurrentACStatus = getPowerStatus();
@@ -44,7 +46,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     // Configure signal/slot connections
     connect(header, SIGNAL(checkBoxClicked(Qt::CheckState)), &gameModel, SLOT(selectAll(Qt::CheckState)));
     connect(&gameModel, SIGNAL(setSelectAll(bool)), header, SLOT(setSelectAll(bool)));
-    connect(&gameModel, SIGNAL(setRemGameBtn(bool)), this, SLOT(setRemGameBtn(bool)));
+    connect(&gameModel, SIGNAL(setRemGameBtn(bool)), this, SLOT(setGameBtns(bool)));
 }
 
 void CfgSwitcher::addGame(QString gameName, QString gamePath, bool mainCfgSet, bool battCfgSet) {
@@ -218,7 +220,7 @@ void CfgSwitcher::on_remGames_clicked()
             removeGame(gameName);
         selected = gameModel.getSelects();
     }
-    setRemGameBtn(false);
+    setGameBtns(false);
 }
 
 
@@ -238,6 +240,8 @@ void CfgSwitcher::on_addGameBtn_clicked()
     }
 }
 
-void CfgSwitcher::setRemGameBtn(bool state) {
+void CfgSwitcher::setGameBtns(bool state) {
     ui->remGames->setEnabled(state);
+    ui->setBattCfgBtn->setEnabled(state);
+    ui->setMainCfgBtn->setEnabled(state);
 }

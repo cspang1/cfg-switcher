@@ -2,5 +2,7 @@
     <qresource prefix="/icons">
         <file>resources/ui/icons/add_game.png</file>
         <file>resources/ui/icons/remove_game.png</file>
+        <file>resources/ui/icons/battery.png</file>
+        <file>resources/ui/icons/main.png</file>
     </qresource>
 </RCC>

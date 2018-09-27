@@ -33,7 +33,7 @@ public:
     bool switchConfigs(int pState, Settings &settings);
 
 public slots:
-    void setRemGameBtn(bool state);
+    void setGameBtns(bool state);
 
 private slots:
     void on_setMainCfgBtn_clicked();
