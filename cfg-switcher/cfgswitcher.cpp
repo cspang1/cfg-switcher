@@ -22,12 +22,6 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     ui->setupUi(this);
     setGameBtns(false);
 
-    // Initialize power status
-    CurrentACStatus = getPowerStatus();
-    setPowerStatusLabel();
-    switchConfigs();
-    QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
-
     // Initialize settings and games
     for(Game &g : settings.getGames())
         addGame(g);
@@ -44,6 +38,12 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     connect(header, SIGNAL(checkBoxClicked(Qt::CheckState)), &gameModel, SLOT(selectAll(Qt::CheckState)));
     connect(&gameModel, SIGNAL(setSelectAll(bool)), header, SLOT(setSelectAll(bool)));
     connect(&gameModel, SIGNAL(setGameBtns(bool)), this, SLOT(setGameBtns(bool)));
+
+    // Initialize power status
+    CurrentACStatus = getPowerStatus();
+    setPowerStatusLabel();
+    switchConfigs();
+    QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 }
 
 void CfgSwitcher::addGame(Game game) {
@@ -98,6 +98,10 @@ BYTE CfgSwitcher::getPowerStatus() {
         QMessageBox::critical(this, tr("Error"), tr("Unable to get system power status"));
         QApplication::exit(EXIT_FAILURE);
     }
+
+    return lpSystemPowerStatus.ACLineStatus;
+}
+
 
 bool CfgSwitcher::switchConfigs() {
     return switchConfigs(CurrentACStatus);
