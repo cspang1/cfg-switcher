@@ -1,6 +1,5 @@
 #include <QMessageBox>
 #include "gamemodel.h"
-#include "game.h"
 
 GameModel::GameModel(QObject *parent) : QAbstractTableModel(parent) { }
 

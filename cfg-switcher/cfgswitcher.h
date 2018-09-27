@@ -29,7 +29,7 @@ public:
     ~CfgSwitcher() override;
     void addGame(QString gameName, QString gamePath);
     void removeGame(QString gameName);
-    bool switchConfigs(int pState, Settings &settings, game &game);
+    bool switchConfigs(int pState, Settings &settings, Game &game);
     bool switchConfigs(int pState, Settings &settings);
 
 public slots:

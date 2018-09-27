@@ -1,4 +1,3 @@
-#include <vector>
 #include <Windows.h>
 #include <QMessageBox>
 #include <QDir>
@@ -6,8 +5,8 @@
 #include "game.h"
 #include "settings.h"
 
-Settings::Settings(QObject *parent) : QObject(parent) {
-    path = QDir::currentPath().toStdString();
+Settings::Settings() {
+    path = QDir::currentPath();
 	cfgPath = path + "\\configs";
     settingsPath = path + "\\settings.xml";
 }
@@ -15,7 +14,7 @@ Settings::Settings(QObject *parent) : QObject(parent) {
 bool Settings::initSettings() {
     QMessageBox msg;
 	tinyxml2::XMLDocument settings;
-    tinyxml2::XMLError loaded = settings.LoadFile(settingsPath.c_str());
+    tinyxml2::XMLError loaded = settings.LoadFile(settingsPath.toStdString().c_str());
 	if (loaded != tinyxml2::XML_SUCCESS) {
         msg.setText("Couldn't find settings.xml file...");
         msg.exec();
@@ -41,8 +40,8 @@ bool Settings::initSettings() {
     settingsPath = path + "\\settings.xml";
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
-	std::string gameID;
-	std::string gamePath;
+    QString gameID;
+    QString gamePath;
 	bool mainCfgSet;
 	bool battCfgSet;
 	tinyxml2::XMLElement* element;
@@ -55,12 +54,12 @@ bool Settings::initSettings() {
 		mainCfgSet = element->BoolAttribute("value");
 		element = gameElement->FirstChildElement("battcfgset");
 		battCfgSet = element->BoolAttribute("value");
-		games.push_back(game(gameID, gamePath, mainCfgSet, battCfgSet));
+        games.push_back(Game(gameID, gamePath, mainCfgSet, battCfgSet));
 		gameElement = gameElement->NextSiblingElement("game");
 	}
 
-    if(!QDir(QString::fromStdString(cfgPath)).exists()) {
-        msg.setText(QString::fromStdString(cfgPath) + " doesn't exist!");
+    if(!QDir(cfgPath).exists()) {
+        msg.setText(cfgPath + " doesn't exist!");
         msg.exec();
         if(!createFileStruct())
             return false;
@@ -77,7 +76,7 @@ bool Settings::createSettingsFile() {
 	element->SetText(0.1f);
 	rootNode->InsertEndChild(element);
 	element = settings.NewElement("path");
-	element->SetText(path.c_str());
+    element->SetText(path.toStdString().c_str());
 	rootNode->InsertEndChild(element);
 	rootNode->InsertEndChild(settings.NewElement("games"));
 	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
@@ -88,8 +87,8 @@ bool Settings::createSettingsFile() {
 
 bool Settings::createFileStruct() {
     QMessageBox msg;
-    if(!QDir().mkdir(QString::fromStdString(cfgPath))) {
-        msg.setText("Error creating " + QString::fromStdString(cfgPath));
+    if(!QDir().mkdir(cfgPath)) {
+        msg.setText("Error creating " + cfgPath);
         msg.exec();
         return false;
     }
@@ -99,21 +98,21 @@ bool Settings::createFileStruct() {
 
 bool Settings::updateFileStruct() {
     QMessageBox msg;
-    std::string gamePath;
-    std::string tempPath;
+    QString gamePath;
+    QString tempPath;
     QDir gpdCreate;
     QDir gmdCreate;
     QDir gbdCreate;
-    for (game &g : games) {
+    for (Game &g : games) {
         gamePath = cfgPath + "\\" + g.ID;
-        gpdCreate.mkpath(QString::fromStdString(gamePath));
-        gpdCreate.setPath(QString::fromStdString(gamePath));
+        gpdCreate.mkpath(gamePath);
+        gpdCreate.setPath(gamePath);
         tempPath = gamePath + "\\main";
-        gmdCreate.mkpath(QString::fromStdString(tempPath));
-        gmdCreate.setPath(QString::fromStdString(tempPath));
+        gmdCreate.mkpath(tempPath);
+        gmdCreate.setPath(tempPath);
         tempPath = gamePath + "\\battery";
-        gbdCreate.mkpath(QString::fromStdString(tempPath));
-        gbdCreate.setPath(QString::fromStdString(tempPath));
+        gbdCreate.mkpath(tempPath);
+        gbdCreate.setPath(tempPath);
         if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists()) {
             msg.setText("Error creating dirs?");
             msg.exec();
@@ -123,10 +122,10 @@ bool Settings::updateFileStruct() {
 	return true;
 }
 
-bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
+bool Settings::addGame(QString gameID, QString gameCfgPath) {
     QMessageBox msg;
     if(gameExists(gameID)) {
-        msg.setText(QString::fromStdString(gameID) + " already exists in configuration");
+        msg.setText(gameID + " already exists in configuration");
         msg.exec();
         return false;
     }
@@ -141,15 +140,15 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = settings.NewElement("game");
 	tinyxml2::XMLElement* element = settings.NewElement("id");
-	element->SetText(gameID.c_str());
+    element->SetText(gameID.toStdString().c_str());
 	gameElement->InsertEndChild(element);
 	element = settings.NewElement("path");
-	if (gameCfgPath.empty()) {
+    if (gameCfgPath.isEmpty()) {
         msg.setText("Error: Valid game config path required");
         msg.exec();
         return false;
 	}
-	element->SetText(gameCfgPath.c_str());
+    element->SetText(gameCfgPath.toStdString().c_str());
 	gameElement->InsertEndChild(element);
 	element = settings.NewElement("maincfgset");
 	element->SetAttribute("value", false);
@@ -165,12 +164,12 @@ bool Settings::addGame(std::string gameID, std::string gameCfgPath) {
         return false;
 	}
 
-	games.push_back(game(gameID, gameCfgPath, false, false));
+    games.push_back(Game(gameID, gameCfgPath, false, false));
 
 	return updateFileStruct();
 }
 
-bool Settings::removeGame(std::string gameID) {
+bool Settings::removeGame(QString gameID) {
     QMessageBox msg;
 
 	tinyxml2::XMLDocument settings;
@@ -200,7 +199,7 @@ bool Settings::removeGame(std::string gameID) {
 		gameElement = gameElement->NextSiblingElement("game");
 	}
 
-    if(!QDir(QString::fromStdString(cfgPath + "\\" + gameID)).removeRecursively()) {
+    if(!QDir(cfgPath + "\\" + gameID).removeRecursively()) {
         msg.setText("Error: Unable to delete game config directory");
         msg.exec();
         return false;
@@ -215,8 +214,8 @@ bool Settings::removeGame(std::string gameID) {
 	return true;
 }
 
-bool Settings::gameExists(std::string gameID) {
-	for (game &g : games) {
+bool Settings::gameExists(QString gameID) {
+    for (Game &g : games) {
 		if (!(gameID.compare(g.ID)))
 			return true;
 	}
@@ -226,8 +225,8 @@ bool Settings::gameExists(std::string gameID) {
 
 bool Settings::setConfigs(int tgtState) {
     QMessageBox msg;
-    std::string cfgDest;
-	std::string cfgFile;
+    QString cfgDest;
+    QString cfgFile;
 
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
@@ -240,9 +239,9 @@ bool Settings::setConfigs(int tgtState) {
 	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
 	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
 
-	for (game &g : games) {
-        QFileInfo fileInfo(QFile(QString::fromStdString(g.cfgPath)).fileName());
-        cfgFile = QString(fileInfo.fileName()).toStdString();
+    for (Game &g : games) {
+        QFileInfo fileInfo(QFile(g.cfgPath).fileName());
+        cfgFile = fileInfo.fileName();
 		switch (tgtState) {
             case 0:
                 cfgDest = cfgPath + "\\" + g.ID + "\\battery\\" + cfgFile;
@@ -256,9 +255,9 @@ bool Settings::setConfigs(int tgtState) {
 				return false;
 		}
 
-        if(QFile::exists(QString::fromStdString(cfgDest)))
-            QFile::remove(QString::fromStdString(cfgDest));
-        if(!QFile::copy(QString::fromStdString(g.cfgPath), QString::fromStdString(cfgDest))) {
+        if(QFile::exists(cfgDest))
+            QFile::remove(cfgDest);
+        if(!QFile::copy(g.cfgPath, cfgDest)) {
             msg.setText("Error: Unable to copy config file");
             msg.exec();
             return false;
@@ -294,9 +293,9 @@ bool Settings::setConfigs(int tgtState) {
 	return true;
 }
 
-std::vector<game> Settings::unsetGames() {
-	std::vector<game> unset;
-	for (game &g : games)
+QList<Game> Settings::unsetGames() {
+    QList<Game> unset;
+    for (Game &g : games)
 		if (!g.battCfgSet || !g.mainCfgSet)
 			unset.push_back(g);
 

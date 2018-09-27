@@ -1,11 +1,11 @@
+#include <QFileDialog>
+#include <QMessageBox>
 #include "gamepicker.h"
 #include "ui_gamepicker.h"
 
-#include <QFileDialog>
-#include <QMessageBox>
-
-GamePicker::GamePicker(QWidget *parent) :
+GamePicker::GamePicker(QList<Game> _games, QWidget *parent) :
     QDialog(parent),
+    games(_games),
     ui(new Ui::GamePicker)
 {
     ui->setupUi(this);
@@ -39,8 +39,22 @@ void GamePicker::on_browseGameBtn_clicked()
 
 void GamePicker::on_saveGameBtn_clicked()
 {
-    if(getGameName().isEmpty() || getGamePath().isEmpty())
-        QMessageBox::question(this, tr("Error"), tr("Both a game name and valid game config file path required"), QMessageBox::Ok);
+    QString illChars = "< > * : \" / \\ | ?";
+    QRegExp re("[<>*:\"\\\\/\\|?]");
+    if(re.indexIn(getGameName()) >= 0)
+        QMessageBox::information(this, tr("Error"), tr("The following characters are not permitted in the game name:\n%1").arg(illChars), QMessageBox::Ok);
+    else if(getGameName().isEmpty() || getGamePath().isEmpty())
+        QMessageBox::information(this, tr("Error"), tr("Both a game name and valid game config file path required"), QMessageBox::Ok);
+    else if(gameExists(getGameName()))
+        QMessageBox::information(this, tr("Error"), tr("%1 already exists in configuration").arg(getGameName()), QMessageBox::Ok);
     else
         this->accept();
+}
+
+bool GamePicker::gameExists(QString game)
+{
+    for(Game &g : games)
+        if(!game.compare(g.ID))
+            return true;
+    return false;
 }

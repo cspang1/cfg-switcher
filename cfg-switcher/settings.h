@@ -1,33 +1,30 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <QObject>
-#include <string>
-#include <vector>
+#include <QList>
 #include "game.h"
 
-class Settings : public QObject{
-    Q_OBJECT
+class Settings {
 private:
-	std::vector<game> games;
-	std::string path;
-	std::string cfgPath;
-    std::string settingsPath;
+    QList<Game> games;
+    QString path;
+    QString cfgPath;
+    QString settingsPath;
 	bool createSettingsFile();
 	bool createFileStruct();
 	bool updateFileStruct();
 
 public:
-    explicit Settings(QObject *parent = nullptr);
+    explicit Settings();
 	bool initSettings();
-	bool addGame(std::string gameID, std::string gamePath);
-    bool removeGame(std::string gameID);
-	bool gameExists(std::string gameID);
+    bool addGame(QString gameID, QString gamePath);
+    bool removeGame(QString gameID);
+    bool gameExists(QString gameID);
     bool setConfigs(int tgtState);
-	std::vector<game> unsetGames();
-	std::vector<game>& getGames() { return games; }
-	std::string getPath() { return path; }
-	std::string getCfgPath() { return cfgPath; }
+    QList<Game> unsetGames();
+    QList<Game>& getGames() { return games; }
+    QString getPath() { return path; }
+    QString getCfgPath() { return cfgPath; }
 
 public slots:
 };

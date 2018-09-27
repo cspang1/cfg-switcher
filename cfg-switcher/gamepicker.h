@@ -2,6 +2,7 @@
 #define GAMEPICKER_H
 
 #include <QDialog>
+#include "game.h"
 
 namespace Ui {
 class GamePicker;
@@ -12,7 +13,7 @@ class GamePicker : public QDialog
     Q_OBJECT
 
 public:
-    explicit GamePicker(QWidget *parent = nullptr);
+    explicit GamePicker(QList<Game> _games, QWidget *parent = nullptr);
     ~GamePicker();
     QString getGameName();
     QString getGamePath();
@@ -24,6 +25,8 @@ private slots:
 
 private:
     Ui::GamePicker *ui;
+    QList<Game> games;
+    bool gameExists(QString game);
 };
 
 #endif // GAMEPICKER_H

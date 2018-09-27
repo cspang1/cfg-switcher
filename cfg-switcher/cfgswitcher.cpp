@@ -28,8 +28,8 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
 
     // Initialize settings and games
-    for(game &g : settings.getGames())
-        addGame(QString::fromStdString(g.ID), QString::fromStdString(g.cfgPath));
+    for(Game &g : settings.getGames())
+        addGame(g.ID, g.cfgPath);
 
     // Configure game table view model
     ui->gamesTableView->setModel(&gameModel);
@@ -68,18 +68,18 @@ void CfgSwitcher::removeGame(QString gameName) {
     ui->gamesTableView->resizeColumnToContents(1);
 }
 
-bool CfgSwitcher::switchConfigs(int pState, Settings &settings, game &game) {
-    std::string cfgPath = settings.getCfgPath();
-    std::string cfgSrc;
-    std::string cfgFile;
+bool CfgSwitcher::switchConfigs(int pState, Settings &settings, Game &game) {
+    QString cfgPath = settings.getCfgPath();
+    QString cfgSrc;
+    QString cfgFile;
 
     if (!game.battCfgSet || !game.mainCfgSet) {
         //std::cerr << "Error: Can't switch " << game.ID << " config files; one or both config files not set" << std::endl;
         return false;
     }
     //std::cout << "Switching " << game.ID << " config files to " << std::string(pState ? "plugged in" : "unplugged") + "..." << std::endl;
-    QFileInfo cfgFileInfo(QFile(QString::fromStdString(game.cfgPath)));
-    cfgFile = cfgFileInfo.fileName().toStdString();
+    QFileInfo cfgFileInfo(QFile(game.cfgPath));
+    cfgFile = cfgFileInfo.fileName();
     QString filename(cfgFileInfo.fileName());
     switch (pState) {
     case 0:
@@ -95,11 +95,11 @@ bool CfgSwitcher::switchConfigs(int pState, Settings &settings, game &game) {
 
     //std::cout << cfgSrc << " to " << game.cfgPath << std::endl;
 
-    if(QFile::exists(QString::fromStdString(game.cfgPath))) {
-        QFile::remove(QString::fromStdString(game.cfgPath));
+    if(QFile::exists(game.cfgPath)) {
+        QFile::remove(game.cfgPath);
         //std::cout << "Removing " << game.cfgPath << std::endl;
     }
-    if(!QFile::copy(QString::fromStdString(cfgSrc), QString::fromStdString(game.cfgPath))) {
+    if(!QFile::copy(cfgSrc, game.cfgPath)) {
         //std::cout << "Didn't work!" << std::endl;
         return false;
     }
@@ -108,13 +108,13 @@ bool CfgSwitcher::switchConfigs(int pState, Settings &settings, game &game) {
 }
 
 bool CfgSwitcher::switchConfigs(int pState, Settings &settings) {
-    std::string cfgPath = settings.getCfgPath();
-    std::string cfgSrc;
-    std::string cfgFile;
+    QString cfgPath = settings.getCfgPath();
+    QString cfgSrc;
+    QString cfgFile;
 
     bool success = true;
 
-    for (game &g : settings.getGames()) {
+    for (Game &g : settings.getGames()) {
         if (!switchConfigs(pState, settings, g))
             success = false;
     }
@@ -199,7 +199,7 @@ void CfgSwitcher::on_remGames_clicked()
     int index;
     while((index = selected.indexOf(Qt::Checked)) != -1) {
         QString gameName = gameModel.getGames().at(index).first;
-        if(settings.removeGame(gameName.toStdString()))
+        if(settings.removeGame(gameName))
             removeGame(gameName);
         selected = gameModel.getSelects();
     }
@@ -209,14 +209,14 @@ void CfgSwitcher::on_remGames_clicked()
 
 void CfgSwitcher::on_addGameBtn_clicked()
 {
-    GamePicker gamePicker;
+    GamePicker gamePicker(settings.getGames());
     QString gameName;
     QString gamePath;
     if(gamePicker.exec()) {
         gameName = gamePicker.getGameName();
         gamePath = gamePicker.getGamePath();
 
-        if(settings.addGame(gameName.toStdString(), gamePath.toStdString()))
+        if(settings.addGame(gameName, gamePath))
             addGame(gameName, gamePath);
         else
             QMessageBox::critical(this, tr("Error"), tr("Unable to add %1").arg(gameName));
