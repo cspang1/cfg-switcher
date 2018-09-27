@@ -22,6 +22,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     bool insertRows(int position, int rows, const QModelIndex &index) override;
     bool removeRows(int position, int rows, const QModelIndex &index) override;
+    bool gameExists(QString gameID);
     QList<Game> getGames();
     QList<Qt::CheckState> getSelects();
 

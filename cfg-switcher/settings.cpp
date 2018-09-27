@@ -11,27 +11,30 @@ Settings::Settings() {
     settingsPath = path + "\\settings.xml";
 }
 
-bool Settings::initSettings() {
+QList<Game> Settings::initSettings() {
     QMessageBox msg;
 	tinyxml2::XMLDocument settings;
     tinyxml2::XMLError loaded = settings.LoadFile(settingsPath.toStdString().c_str());
-	if (loaded != tinyxml2::XML_SUCCESS) {
+    status = true;
+    if (loaded != tinyxml2::XML_SUCCESS) {
 		if (!createSettingsFile()) {
             msg.setText("Error creating new settings file");
             msg.exec();
-			return false;
+            status = false;
+            return QList<Game>();
 		}
 		else {
 			loaded = settings.LoadFile("settings.xml");
 			if (loaded != tinyxml2::XML_SUCCESS) {
                 msg.setText("Error loading settings file");
                 msg.exec();
-				return false;
+                status = false;
 			}
 		}
 	}
 
-	tinyxml2::XMLNode* rootNode = settings.FirstChild();
+    QList<Game> games;
+    tinyxml2::XMLNode* rootNode = settings.FirstChild();
 	tinyxml2::XMLElement* pathElement = rootNode->FirstChildElement("path");
 	path = pathElement->GetText();
 	cfgPath = path + "\\configs";
@@ -55,11 +58,13 @@ bool Settings::initSettings() {
 	}
 
     if(!QDir(cfgPath).exists()) {
-        if(!createFileStruct())
-            return false;
+        if(!createFileStruct(games)) {
+            status = false;
+            return QList<Game>();
+        }
     }
 
-	return true;
+    return games;
 }
 
 bool Settings::createSettingsFile() {
@@ -79,7 +84,7 @@ bool Settings::createSettingsFile() {
 	return true;
 }
 
-bool Settings::createFileStruct() {
+bool Settings::createFileStruct(QList<Game> games) {
     QMessageBox msg;
     if(!QDir().mkdir(cfgPath)) {
         msg.setText("Error creating " + cfgPath);
@@ -87,30 +92,32 @@ bool Settings::createFileStruct() {
         return false;
     }
 
-    return updateFileStruct();
+    bool success = true;
+    for (Game &g : games)
+        if(!updateFileStruct(g.ID))
+            success = false;
+
+    return success;
 }
 
-bool Settings::updateFileStruct() {
-    QMessageBox msg;
-    QString gamePath;
-    QString tempPath;
+bool Settings::updateFileStruct(QString gameID) {
     QDir gpdCreate;
     QDir gmdCreate;
     QDir gbdCreate;
-    for (Game &g : games) {
-        gamePath = cfgPath + "\\" + g.ID;
-        gpdCreate.mkpath(gamePath);
-        gpdCreate.setPath(gamePath);
-        tempPath = gamePath + "\\main";
-        gmdCreate.mkpath(tempPath);
-        gmdCreate.setPath(tempPath);
-        tempPath = gamePath + "\\battery";
-        gbdCreate.mkpath(tempPath);
-        gbdCreate.setPath(tempPath);
-        if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists()) {
-            msg.setText("Error creating game config directories");
-            msg.exec();
-		}
+    QString gamePath = cfgPath + "\\" + gameID;
+    gpdCreate.mkpath(gamePath);
+    gpdCreate.setPath(gamePath);
+    QString tempPath = gamePath + "\\main";
+    gmdCreate.mkpath(tempPath);
+    gmdCreate.setPath(tempPath);
+    tempPath = gamePath + "\\battery";
+    gbdCreate.mkpath(tempPath);
+    gbdCreate.setPath(tempPath);
+    if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists()) {
+        QMessageBox msg;
+        msg.setText("Error creating " + gameID + "config directories");
+        msg.exec();
+        return false;
     }
 
 	return true;
@@ -118,11 +125,6 @@ bool Settings::updateFileStruct() {
 
 bool Settings::addGame(QString gameID, QString gameCfgPath) {
     QMessageBox msg;
-    if(gameExists(gameID)) {
-        msg.setText(gameID + " already exists in configuration");
-        msg.exec();
-        return false;
-    }
 	tinyxml2::XMLDocument settings;
 	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
 	if (loaded != tinyxml2::XML_SUCCESS) {
@@ -162,9 +164,7 @@ bool Settings::addGame(QString gameID, QString gameCfgPath) {
         return false;
 	}
 
-    games.push_back(Game(gameID, gameCfgPath));
-
-	return updateFileStruct();
+    return updateFileStruct(gameID);
 }
 
 bool Settings::removeGame(QString gameID) {
@@ -205,24 +205,18 @@ bool Settings::removeGame(QString gameID) {
         return false;
     }
 
-    // Remove game from games list
-    for (int index = 0; index < games.size(); index++) {
-        if (!gameID.compare(games.at(index).ID)) {
-            games.erase(games.begin() + index);
-		}
-	}
-
 	return true;
 }
 
-bool Settings::gameExists(QString gameID) {
+// Re-implement to check if explicitly exists in settings file?
+/*bool Settings::gameExists(QString gameID) {
     for (Game &g : games) {
 		if (!(gameID.compare(g.ID)))
 			return true;
 	}
 
 	return false;
-}
+}*/
 
 bool Settings::setConfig(int tgtState, Game game) {
     QMessageBox msg;
@@ -293,19 +287,6 @@ bool Settings::setConfig(int tgtState, Game game) {
 
 }
 
-bool Settings::setConfigs(int tgtState) {
-    QMessageBox msg;
-    bool success = true;;
-    for (Game &g : games)
-        if(!setConfig(tgtState, g)) {
-            msg.setText("Error: Unable to set configs for " + g.ID);
-            msg.exec();
-            success = false;
-        }
-
-    return success;
-}
-
 bool Settings::setStatus(bool enabled, Game game) {
     QMessageBox msg;
     QString cfgDest;
@@ -336,26 +317,4 @@ bool Settings::setStatus(bool enabled, Game game) {
     }
 
     return true;
-}
-
-bool Settings::setStatuses(bool enabled) {
-    QMessageBox msg;
-    bool success = true;
-    for(Game &g : games)
-        if(!setStatus(enabled, g)) {
-            success = false;
-            msg.setText("Error: Unable to set status of " + g.ID);
-            msg.exec();
-        }
-
-    return success;
-}
-
-QList<Game> Settings::unsetGames() {
-    QList<Game> unset;
-    for (Game &g : games)
-		if (!g.battCfgSet || !g.mainCfgSet)
-			unset.push_back(g);
-
-	return unset;
 }

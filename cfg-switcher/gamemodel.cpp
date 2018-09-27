@@ -172,3 +172,10 @@ void GameModel::selectAll(Qt::CheckState state) {
         setData(index, state, Qt::CheckStateRole);
     }
 }
+
+bool GameModel::gameExists(QString gameID) {
+    for(Game &g : games)
+        if(!gameID.compare(g.ID))
+            return true;
+    return false;
+}

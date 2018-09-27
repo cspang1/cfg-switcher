@@ -6,29 +6,24 @@
 
 class Settings {
 private:
-    QList<Game> games;
     QString path;
     QString cfgPath;
     QString settingsPath;
+    bool status;
 	bool createSettingsFile();
-	bool createFileStruct();
-	bool updateFileStruct();
+    bool createFileStruct(QList<Game> games);
+    bool updateFileStruct(QString gameID);
 
 public:
     explicit Settings();
-	bool initSettings();
+    QList<Game> initSettings();
     bool addGame(QString gameID, QString gamePath);
     bool removeGame(QString gameID);
-    bool gameExists(QString gameID);
     bool setConfig(int tgtState, Game game);
-    bool setConfigs(int tgtState);
     bool setStatus(bool enabled, Game game);
-    bool setStatuses(bool enabled);
-    QList<Game> unsetGames();
-    QList<Game>& getGames() { return games; }
     QString getPath() { return path; }
     QString getCfgPath() { return cfgPath; }
-
+    bool initSuccess() { return status; }
 
 public slots:
 };

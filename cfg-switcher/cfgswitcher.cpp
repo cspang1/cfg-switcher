@@ -13,7 +13,8 @@
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
-    if(!settings.initSettings()) {
+    QList<Game> games = settings.initSettings();
+    if(!settings.initSuccess()) {
         QMessageBox::critical(this, tr("Error"), tr("Unable to initialize settings"));
         QApplication::exit(EXIT_FAILURE);
     }
@@ -23,7 +24,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     setGameBtns(false);
 
     // Initialize settings and games
-    for(Game &g : settings.getGames())
+    for(Game &g : games)
         addGame(g);
 
     // Configure game table view model
@@ -213,9 +214,9 @@ void CfgSwitcher::on_remGames_clicked()
     int index;
     bool success = true;
     while((index = selected.indexOf(Qt::Checked)) != -1) {
-        QString gameName = gameModel.getGames().at(index).ID;
-        if(settings.removeGame(gameName))
-            removeGame(gameName);
+        QString gameID = gameModel.getGames().at(index).ID;
+        if(settings.removeGame(gameID))
+            removeGame(gameID);
         else
             success = false;
         selected = gameModel.getSelects();
@@ -230,17 +231,21 @@ void CfgSwitcher::on_remGames_clicked()
 
 void CfgSwitcher::on_addGameBtn_clicked()
 {
-    GamePicker gamePicker(settings.getGames());
-    QString gameName;
+    GamePicker gamePicker(gameModel.getGames());
+    QString gameID;
     QString gamePath;
     if(gamePicker.exec()) {
-        gameName = gamePicker.getGameName();
+        gameID = gamePicker.getGameName();
         gamePath = gamePicker.getGamePath();
 
-        if(settings.addGame(gameName, gamePath))
-            addGame(Game(gameName, gamePath));
+        if(!gameModel.gameExists(gameID)) {
+            if(settings.addGame(gameID, gamePath))
+                addGame(Game(gameID, gamePath));
+            else
+                QMessageBox::information(this, tr("Error"), tr("%1 already exists in configuration").arg(gameID), QMessageBox::Ok);
+        }
         else
-            QMessageBox::critical(this, tr("Error"), tr("Unable to add %1").arg(gameName));
+            QMessageBox::critical(this, tr("Error"), tr("Unable to add %1").arg(gameID));
     }
 }
 
