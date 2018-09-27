@@ -103,7 +103,7 @@
          <item>
           <widget class="QPushButton" name="remGames">
            <property name="text">
-            <string>Remove Selected Games</string>
+            <string>Remove Game(s)</string>
            </property>
            <property name="icon">
             <iconset resource="resources.qrc">

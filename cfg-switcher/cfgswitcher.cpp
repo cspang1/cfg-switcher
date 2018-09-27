@@ -11,6 +11,8 @@
 #include "game.h"
 #include "checkboxheader.h"
 
+#define DEBUG
+
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
     if(!settings.initSettings()) {
@@ -29,7 +31,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
 
     // Initialize settings and games
     for(Game &g : settings.getGames())
-        addGame(g.ID, g.cfgPath);
+        addGame(g.ID, g.cfgPath, g.mainCfgSet, g.battCfgSet);
 
     // Configure game table view model
     ui->gamesTableView->setModel(&gameModel);
@@ -45,8 +47,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     connect(&gameModel, SIGNAL(setRemGameBtn(bool)), this, SLOT(setRemGameBtn(bool)));
 }
 
-void CfgSwitcher::addGame(QString gameName, QString gamePath) {
-    QPair<QString, QString> pair(gameName, gamePath);
+void CfgSwitcher::addGame(QString gameName, QString gamePath, bool mainCfgSet, bool battCfgSet) {
     gameModel.insertRows(0, 1, QModelIndex());
     QModelIndex index = gameModel.index(0, 0, QModelIndex());
     gameModel.setData(index, Qt::Unchecked, Qt::CheckStateRole);
@@ -54,14 +55,18 @@ void CfgSwitcher::addGame(QString gameName, QString gamePath) {
     gameModel.setData(index, gameName, Qt::EditRole);
     index = gameModel.index(0, 2, QModelIndex());
     gameModel.setData(index, gamePath, Qt::EditRole);
+    index = gameModel.index(0, 3, QModelIndex());
+    gameModel.setData(index, mainCfgSet, Qt::EditRole);
+    index = gameModel.index(0, 4, QModelIndex());
+    gameModel.setData(index, battCfgSet, Qt::EditRole);
     ui->gamesTableView->resizeColumnToContents(1);
 }
 
 void CfgSwitcher::removeGame(QString gameName) {
-    QList<QPair<QString, QString>> gameList = gameModel.getGames();
+    QList<Game> games = gameModel.getGames();
     int remIndex = -1;
-    for(int i = 0; i < gameList.size(); i++)
-        if(!gameName.compare(gameList.at(i).first))
+    for(int i = 0; i < games.size(); i++)
+        if(!gameName.compare(games.at(i).ID))
             remIndex = i;
 
     gameModel.removeRows(remIndex, 1, QModelIndex());
@@ -170,10 +175,14 @@ void CfgSwitcher::on_setMainCfgBtn_clicked()
 {
     if(!settings.setConfigs(1)) {
         QMessageBox::critical(this, tr("Error"), tr("Unable to set main configuration files"));
-        QApplication::exit(EXIT_FAILURE);
     }
-    else
+    else {
+        for(int i = 0; i < settings.getGames().size(); i++) {
+            QModelIndex index = gameModel.index(i, 3, QModelIndex());
+            gameModel.setData(index, true, Qt::EditRole);
+        }
         QMessageBox::information(this, tr("Success!"), tr("Successfully set config files for main state"), QMessageBox::Ok);
+    }
 }
 
 void CfgSwitcher::on_setBattCfgBtn_clicked()
@@ -182,9 +191,13 @@ void CfgSwitcher::on_setBattCfgBtn_clicked()
         QMessageBox::critical(this, tr("Error"), tr("Unable to set battery configuration files"));
 
     }
-    else
+    else {
+        for(int i = 0; i < settings.getGames().size(); i++) {
+            QModelIndex index = gameModel.index(i, 4, QModelIndex());
+            gameModel.setData(index, true, Qt::EditRole);
+        }
         QMessageBox::information(this, tr("Success!"), tr("Successfully set config files for on-battery state"), QMessageBox::Ok);
-
+    }
 }
 
 void CfgSwitcher::on_quitButton_clicked()
@@ -198,8 +211,10 @@ void CfgSwitcher::on_remGames_clicked()
     QList<Qt::CheckState> selected = gameModel.getSelects();
     int index;
     while((index = selected.indexOf(Qt::Checked)) != -1) {
-        QString gameName = gameModel.getGames().at(index).first;
+        QString gameName = gameModel.getGames().at(index).ID;
+        #ifndef DEBUG
         if(settings.removeGame(gameName))
+        #endif
             removeGame(gameName);
         selected = gameModel.getSelects();
     }
@@ -217,7 +232,7 @@ void CfgSwitcher::on_addGameBtn_clicked()
         gamePath = gamePicker.getGamePath();
 
         if(settings.addGame(gameName, gamePath))
-            addGame(gameName, gamePath);
+            addGame(gameName, gamePath, false, false);
         else
             QMessageBox::critical(this, tr("Error"), tr("Unable to add %1").arg(gameName));
     }

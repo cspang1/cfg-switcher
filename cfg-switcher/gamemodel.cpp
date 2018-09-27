@@ -20,14 +20,18 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
     if (index.row() >= games.size() || index.row() >= selects.size() || index.row() < 0)
         return QVariant();
 
-    QPair<QString, QString> game;
+    Game game;
     switch(role) {
     case Qt::DisplayRole:
         game = games.at(index.row());
         if(index.column() == 1)
-            return game.first;
+            return game.ID;
         else if(index.column() == 2)
-            return game.second;
+            return game.cfgPath;
+        else if(index.column() == 3)
+            return game.mainCfgSet;
+        else if(index.column() == 4)
+            return game.battCfgSet;
         else
             return QVariant();
     case Qt::CheckStateRole:
@@ -44,20 +48,24 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
     if (!index.isValid())
         return false;
 
-    QPair<QString, QString> p;
+    Game game;
     bool state;
     switch(role) {
     case Qt::EditRole:
-        p = games.value(index.row());
+        game = games.value(index.row());
 
         if (index.column() == 1)
-            p.first = value.toString();
+            game.ID = value.toString();
         else if (index.column() == 2)
-            p.second = value.toString();
+            game.cfgPath= value.toString();
+        else if (index.column() == 3)
+            game.mainCfgSet= value.toBool();
+        else if (index.column() == 4)
+            game.battCfgSet= value.toBool();
         else
             return false;
 
-        games.replace(index.row(), p);
+        games.replace(index.row(), game);
         emit dataChanged(index, index);
         return true;
     case Qt::CheckStateRole:
@@ -100,10 +108,14 @@ QVariant GameModel::headerData(int section, Qt::Orientation orientation, int rol
         if (orientation == Qt::Horizontal) {
             switch (section)
             {
-                case 1:
-                    return tr("Game ID");
-                case 2:
-                    return tr("Config Path");
+            case 1:
+                return tr("Game ID");
+            case 2:
+                return tr("Config Path");
+            case 3:
+                return tr("Main Config Set");
+            case 4:
+                return tr("Battery Config Set");
             }
         }
         break;
@@ -117,9 +129,9 @@ bool GameModel::insertRows(int position, int rows, const QModelIndex &index) {
     beginInsertRows(QModelIndex(), position, position+rows-1);
 
     for (int row=0; row < rows; row++) {
-        QPair<QString, QString> pair(" ", " ");
+        Game game("", "", false, false);
         Qt::CheckState select = Qt::Unchecked;
-        games.insert(position, pair);
+        games.insert(position, game);
         selects.insert(position, select);
     }
 
@@ -141,7 +153,7 @@ bool GameModel::removeRows(int position, int rows, const QModelIndex &index) {
     return true;
 }
 
-QList< QPair<QString, QString> > GameModel::getGames() {
+QList<Game> GameModel::getGames() {
     return games;
 }
 

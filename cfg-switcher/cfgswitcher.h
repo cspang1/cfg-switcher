@@ -27,7 +27,7 @@ public:
     explicit CfgSwitcher(QWidget *parent = nullptr);
     virtual bool nativeEventFilter(const QByteArray &eventType, void *message, long *) Q_DECL_OVERRIDE;
     ~CfgSwitcher() override;
-    void addGame(QString gameName, QString gamePath);
+    void addGame(QString gameName, QString gamePath, bool mainCfgSet, bool battCfgSet);
     void removeGame(QString gameName);
     bool switchConfigs(int pState, Settings &settings, Game &game);
     bool switchConfigs(int pState, Settings &settings);

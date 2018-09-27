@@ -2,14 +2,15 @@
 #define GAMEMODEL_H
 
 #include <QAbstractTableModel>
+#include "game.h"
 
 class GameModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    QList<QPair<QString, QString>> games;
+    QList<Game> games;
     QList<Qt::CheckState> selects;
-    const int NUM_COL = 3;
+    const int NUM_COL = 5;
 
 public:
     GameModel(QObject *parent);
@@ -21,7 +22,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     bool insertRows(int position, int rows, const QModelIndex &index) override;
     bool removeRows(int position, int rows, const QModelIndex &index) override;
-    QList<QPair<QString, QString>> getGames();
+    QList<Game> getGames();
     QList<Qt::CheckState> getSelects();
 
 signals:
