@@ -86,7 +86,7 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
         CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
         if (ACStatusChanged) {
             setPowerStatusLabel();
-            switchConfigs(CurrentACStatus);
+            switchConfigs();
         }
     }
     return false;
@@ -280,6 +280,8 @@ void CfgSwitcher::setStatus(bool status) {
             else {
                 QModelIndex index = gameModel.index(row, 5, QModelIndex());
                 gameModel.setData(index, status, Qt::EditRole);
+                if(status)
+                    switchConfigs(CurrentACStatus, game);
             }
         }
     }
