@@ -1,11 +1,12 @@
 #include <QAbstractEventDispatcher>
-#include <Windows.h>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QTimer>
+#include <QSettings>
+#include <QDebug>
+#include <Windows.h>
 #include "cfgswitcher.h"
 #include "ui_cfgswitcher.h"
-#include "settings.h"
 #include "gamemodel.h"
 #include "gamepicker.h"
 #include "game.h"
@@ -13,11 +14,10 @@
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
-    QList<Game> games = settings.initSettings();
-    if(!settings.initSuccess()) {
-        QMessageBox::critical(this, tr("Error"), tr("Unable to initialize settings"));
-        QApplication::exit(EXIT_FAILURE);
-    }
+
+    // Get games manifest
+    qRegisterMetaTypeStreamOperators<Game>("Game");
+    QList<Game> games = settings.getGames();
 
     // Initialize UI
     ui->setupUi(this);
@@ -119,7 +119,7 @@ bool CfgSwitcher::switchConfigs(int pState) {
 }
 
 bool CfgSwitcher::switchConfigs(int pState, Game &game) {
-    QString cfgPath = settings.getCfgPath();
+    QString cfgPath = settings.CFG_PATH;
     QString cfgSrc;
     QString cfgFile;
 
@@ -184,7 +184,7 @@ void CfgSwitcher::setConfigs(int pState) {
     bool success = true;
     for(int row = 0; row < selects.size(); row++) {
         if(selects.at(row) == Qt::Checked) {
-            if(!settings.setConfig(pState, games.at(row))) {
+            if(!settings.setGameConfig(pState, games.at(row))) { // NEED TO SET battCfg and mainCfg set vars in gameModel obj?
                 QMessageBox::critical(this, tr("Error"), tr("Unable to set %1 configuration files").arg(stateStr));
                 success = false;
             }
@@ -214,9 +214,9 @@ void CfgSwitcher::on_remGames_clicked()
     int index;
     bool success = true;
     while((index = selected.indexOf(Qt::Checked)) != -1) {
-        QString gameID = gameModel.getGames().at(index).ID;
-        if(settings.removeGame(gameID))
-            removeGame(gameID);
+        Game game = gameModel.getGames().at(index);
+        if(settings.removeGame(game))
+            removeGame(game.ID);
         else
             success = false;
         selected = gameModel.getSelects();
@@ -239,7 +239,7 @@ void CfgSwitcher::on_addGameBtn_clicked()
         gamePath = gamePicker.getGamePath();
 
         if(!gameModel.gameExists(gameID)) {
-            if(settings.addGame(gameID, gamePath))
+            if(settings.addGame(Game(gameID, gamePath)))
                 addGame(Game(gameID, gamePath));
             else
                 QMessageBox::information(this, tr("Error"), tr("%1 already exists in configuration").arg(gameID), QMessageBox::Ok);
@@ -278,11 +278,8 @@ void CfgSwitcher::setStatus(bool status) {
                 QMessageBox::information(this, tr("Error"), tr("%1 config(s) unset; unable to enable switching").arg(game.ID), QMessageBox::Ok);
                 success = false;
             }
-            else if(!settings.setStatus(status, game)) {
-                QMessageBox::critical(this, tr("Error"), tr("Unable to set %1 status").arg(game.ID));
-                success = false;
-            }
             else {
+                status ? settings.enableGame(game) : settings.disableGame(game);
                 QModelIndex index = gameModel.index(row, 5, QModelIndex());
                 gameModel.setData(index, status, Qt::EditRole);
                 if(status)

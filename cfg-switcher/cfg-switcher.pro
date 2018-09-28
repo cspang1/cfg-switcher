@@ -29,20 +29,18 @@ CONFIG += c++11
 SOURCES += \
     cfgswitcher.cpp \
     main.cpp \
-    tinyxml2.cpp \
     gamemodel.cpp \
     gamepicker.cpp \
-    settings.cpp \
-    checkboxheader.cpp
+    checkboxheader.cpp \
+    settings.cpp
 
 HEADERS += \
     cfgswitcher.h \
     game.h \
-    tinyxml2.h \
     gamemodel.h \
     gamepicker.h \
-    settings.h \
-    checkboxheader.h
+    checkboxheader.h \
+    settings.h
 
 FORMS += \
         cfgswitcher.ui \

@@ -1,309 +1,96 @@
-#include <Windows.h>
 #include <QMessageBox>
-#include <QDir>
-#include "tinyxml2.h"
-#include "game.h"
 #include "settings.h"
 
-Settings::Settings() {
-    path = QDir::currentPath();
-	cfgPath = path + "\\configs";
-    settingsPath = path + "\\settings.xml";
-}
-
-QList<Game> Settings::initSettings() {
-    QMessageBox msg;
-	tinyxml2::XMLDocument settings;
-    tinyxml2::XMLError loaded = settings.LoadFile(settingsPath.toStdString().c_str());
-    status = true;
-    if (loaded != tinyxml2::XML_SUCCESS) {
-		if (!createSettingsFile()) {
-            msg.setText("Error creating new settings file");
-            msg.exec();
-            status = false;
-            return QList<Game>();
-		}
-		else {
-			loaded = settings.LoadFile("settings.xml");
-			if (loaded != tinyxml2::XML_SUCCESS) {
-                msg.setText("Error loading settings file");
-                msg.exec();
-                status = false;
-			}
-		}
-	}
-
+QList<Game> Settings::getGames() {
     QList<Game> games;
-    tinyxml2::XMLNode* rootNode = settings.FirstChild();
-	tinyxml2::XMLElement* pathElement = rootNode->FirstChildElement("path");
-	path = pathElement->GetText();
-	cfgPath = path + "\\configs";
-    settingsPath = path + "\\settings.xml";
-	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
-	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
-
-	while (gameElement != nullptr) {
-        tinyxml2::XMLElement* element = gameElement->FirstChildElement("id");
-        QString gameID = element->GetText();
-		element = gameElement->FirstChildElement("path");
-        QString gamePath = element->GetText();
-		element = gameElement->FirstChildElement("maincfgset");
-        bool mainCfgSet = element->BoolAttribute("value");
-        element = gameElement->FirstChildElement("battcfgset");
-        bool battCfgSet = element->BoolAttribute("value");
-        element = gameElement->FirstChildElement("enabled");
-        bool enabled = element->BoolAttribute("value");
-        games.push_back(Game(gameID, gamePath, mainCfgSet, battCfgSet, enabled));
-		gameElement = gameElement->NextSiblingElement("game");
-	}
-
-    if(!QDir(cfgPath).exists()) {
-        if(!createFileStruct(games)) {
-            status = false;
-            return QList<Game>();
-        }
+    settings.beginGroup(GAME_GRP);
+    for(QString game : settings.childKeys()) {
+        QVariant g = settings.value(game);
+        games.push_back(g.value<Game>());
     }
-
+    settings.endGroup();
     return games;
 }
 
-bool Settings::createSettingsFile() {
-	tinyxml2::XMLDocument settings;
-	tinyxml2::XMLNode* rootNode = settings.NewElement("settings");
-	settings.InsertFirstChild(rootNode);
-	tinyxml2::XMLElement* element = settings.NewElement("version");
-    element->SetText("2.0.0");
-	rootNode->InsertEndChild(element);
-	element = settings.NewElement("path");
-    element->SetText(path.toStdString().c_str());
-	rootNode->InsertEndChild(element);
-	rootNode->InsertEndChild(settings.NewElement("games"));
-	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
-	if (saved != tinyxml2::XML_SUCCESS)
-		return false;
-	return true;
+bool Settings::addGame(Game game) {
+    updateGame(game);
+
+    return updateFileStruct();
 }
 
-bool Settings::createFileStruct(QList<Game> games) {
-    QMessageBox msg;
-    if(!QDir().mkdir(cfgPath)) {
-        msg.setText("Error creating " + cfgPath);
-        msg.exec();
-        return false;
-    }
-
-    bool success = true;
-    for (Game &g : games)
-        if(!updateFileStruct(g.ID))
-            success = false;
-
-    return success;
+void Settings::updateGame(Game game) {
+    settings.beginGroup(GAME_GRP);
+    settings.setValue(game.ID, QVariant::fromValue(game));
+    settings.endGroup();
 }
 
-bool Settings::updateFileStruct(QString gameID) {
-    QDir gpdCreate;
-    QDir gmdCreate;
-    QDir gbdCreate;
-    QString gamePath = cfgPath + "\\" + gameID;
-    gpdCreate.mkpath(gamePath);
-    gpdCreate.setPath(gamePath);
-    QString tempPath = gamePath + "\\main";
-    gmdCreate.mkpath(tempPath);
-    gmdCreate.setPath(tempPath);
-    tempPath = gamePath + "\\battery";
-    gbdCreate.mkpath(tempPath);
-    gbdCreate.setPath(tempPath);
-    if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists()) {
-        QMessageBox msg;
-        msg.setText("Error creating " + gameID + "config directories");
-        msg.exec();
-        return false;
-    }
+bool Settings::removeGame(Game game) {
+    settings.beginGroup(GAME_GRP);
+    settings.remove(game.ID);
+    settings.endGroup();
 
-	return true;
+    return updateFileStruct();
 }
 
-bool Settings::addGame(QString gameID, QString gameCfgPath) {
-    QMessageBox msg;
-	tinyxml2::XMLDocument settings;
-	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
-	if (loaded != tinyxml2::XML_SUCCESS) {
-        msg.setText("Error: Unable to load settings.xml file");
-        msg.exec();
-        return false;
-    }
-
-	tinyxml2::XMLNode* rootNode = settings.FirstChild();
-	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
-	tinyxml2::XMLElement* gameElement = settings.NewElement("game");
-	tinyxml2::XMLElement* element = settings.NewElement("id");
-    element->SetText(gameID.toStdString().c_str());
-	gameElement->InsertEndChild(element);
-	element = settings.NewElement("path");
-    if (gameCfgPath.isEmpty()) {
-        msg.setText("Error: Valid game config path required");
-        msg.exec();
-        return false;
-	}
-    element->SetText(gameCfgPath.toStdString().c_str());
-	gameElement->InsertEndChild(element);
-	element = settings.NewElement("maincfgset");
-	element->SetAttribute("value", false);
-	gameElement->InsertEndChild(element);
-	element = settings.NewElement("battcfgset");
-    element->SetAttribute("value", false);
-    gameElement->InsertEndChild(element);
-    element = settings.NewElement("enabled");
-    element->SetAttribute("value", false);
-    gameElement->InsertEndChild(element);
-	gamesElement->InsertEndChild(gameElement);
-	tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
-	if (saved != tinyxml2::XML_SUCCESS) {
-        msg.setText("Error: Unable to save settings.xml file");
-        msg.exec();
-        return false;
-	}
-
-    return updateFileStruct(gameID);
+void Settings::enableGame(Game game) {
+    game.enabled = true;
+    updateGame(game);
 }
 
-bool Settings::removeGame(QString gameID) {
-    QMessageBox msg;
-
-    // Delete game from settings file
-	tinyxml2::XMLDocument settings;
-	tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
-	if (loaded != tinyxml2::XML_SUCCESS) {
-        msg.setText("Error: Unable to load settings.xml file");
-        msg.exec();
-        return false;
-	}
-	tinyxml2::XMLNode* rootNode = settings.FirstChild();
-	tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
-	tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
-	tinyxml2::XMLElement* idElement;
-	while (gameElement != nullptr) {
-		idElement = gameElement->FirstChildElement("id");
-		if (!gameID.compare(idElement->GetText())) {
-			gamesElement->DeleteChild(gameElement);
-			tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
-			if (saved != tinyxml2::XML_SUCCESS) {
-                msg.setText("Error: Unable to save settings.xml file");
-                msg.exec();
-                return false;
-			}
-			else
-				break;
-		}
-		gameElement = gameElement->NextSiblingElement("game");
-	}
-
-    // Delete game config directory
-    if(!QDir(cfgPath + "\\" + gameID).removeRecursively()) {
-        msg.setText("Error: Unable to delete game config directory");
-        msg.exec();
-        return false;
-    }
-
-	return true;
+void Settings::disableGame(Game game) {
+    game.enabled = false;
+    updateGame(game);
 }
 
-bool Settings::setConfig(int tgtState, Game game) {
-    QMessageBox msg;
-    QString cfgDest;
-    QString cfgFile;
-
-    tinyxml2::XMLDocument settings;
-    tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
-    if (loaded != tinyxml2::XML_SUCCESS) {
-        msg.setText("Error: Unable to load settings.xml file");
-        msg.exec();
-        return false;
-    }
-    tinyxml2::XMLNode* rootNode = settings.FirstChild();
-    tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
-    tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
-
+bool Settings::setGameConfig(int tgtState, Game game) {
     QFileInfo fileInfo(QFile(game.cfgPath).fileName());
-    cfgFile = fileInfo.fileName();
+    QString cfgDest;
     switch (tgtState) {
         case 0:
-            cfgDest = cfgPath + "\\" + game.ID + "\\battery\\" + cfgFile;
+            cfgDest = gameBattPath(game) + "\\" + fileInfo.fileName();
             break;
         case 1:
-            cfgDest = cfgPath + "\\" + game.ID + "\\main\\" + cfgFile;
+            cfgDest = gameMainPath(game) + "\\" + fileInfo.fileName();
             break;
-        default:
-            msg.setText("Error: Invalid AClineStatus provided");
-            msg.exec();
-            return false;
     }
 
     if(QFile::exists(cfgDest))
         QFile::remove(cfgDest);
     if(!QFile::copy(game.cfgPath, cfgDest)) {
-        msg.setText("Error: Unable to copy config file");
-        msg.exec();
+        QMessageBox::critical(nullptr, tr("Error"), tr("Unable to set %1 config files").arg(game.ID));
         return false;
     }
     else {
-        while (game.ID.compare(gameElement->FirstChildElement("id")->GetText()))
-            gameElement = gameElement->NextSiblingElement("game");
-
         switch (tgtState) {
             case 0:
                 game.battCfgSet = true;
-                gameElement->FirstChildElement("battcfgset")->SetAttribute("value", game.battCfgSet);
                 break;
             case 1:
                 game.mainCfgSet = true;
-                gameElement->FirstChildElement("maincfgset")->SetAttribute("value", game.mainCfgSet);
-                break;
-            default:
-                msg.setText("Error: Invalid AClineStatus provided");
-                msg.exec();
-                return false;
         }
     }
 
-    tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
-    if (saved != tinyxml2::XML_SUCCESS) {
-        msg.setText("Error: Unable to save settings.xml file");
-        msg.exec();
-        return false;
-    }
+    updateGame(game);
 
     return true;
-
 }
 
-bool Settings::setStatus(bool enabled, Game game) {
-    QMessageBox msg;
-    QString cfgDest;
-    QString cfgFile;
-
-    tinyxml2::XMLDocument settings;
-    tinyxml2::XMLError loaded = settings.LoadFile("settings.xml");
-    if (loaded != tinyxml2::XML_SUCCESS) {
-        msg.setText("Error: Unable to load settings.xml file");
-        msg.exec();
-        return false;
-    }
-    tinyxml2::XMLNode* rootNode = settings.FirstChild();
-    tinyxml2::XMLElement* gamesElement = rootNode->FirstChildElement("games");
-    tinyxml2::XMLElement* gameElement = gamesElement->FirstChildElement("game");
-
-    while (game.ID.compare(gameElement->FirstChildElement("id")->GetText()))
-        gameElement = gameElement->NextSiblingElement("game");
-
-    game.enabled = enabled;
-    gameElement->FirstChildElement("enabled")->SetAttribute("value", enabled);
-
-    tinyxml2::XMLError saved = settings.SaveFile("settings.xml");
-    if (saved != tinyxml2::XML_SUCCESS) {
-        msg.setText("Error: Unable to save settings.xml file");
-        msg.exec();
-        return false;
+bool Settings::updateFileStruct() {
+    for (Game game : getGames()) {
+        QDir gpdCreate;
+        QDir gmdCreate;
+        QDir gbdCreate;
+        QString gamePath = gameCfgPath(game);
+        gpdCreate.mkpath(gamePath);
+        gpdCreate.setPath(gamePath);
+        QString tempPath = gameMainPath(game);
+        gmdCreate.mkpath(tempPath);
+        gmdCreate.setPath(tempPath);
+        tempPath = gameBattPath(game);
+        gbdCreate.mkpath(tempPath);
+        gbdCreate.setPath(tempPath);
+        if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists())
+            QMessageBox::critical(nullptr, tr("Error"), tr("Unable to creat %1 config directories").arg(game.ID));
     }
 
     return true;
