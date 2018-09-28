@@ -40,7 +40,8 @@ HEADERS += \
     gamemodel.h \
     gamepicker.h \
     checkboxheader.h \
-    settings.h
+    settings.h \
+    powerstate.h
 
 FORMS += \
         cfgswitcher.ui \

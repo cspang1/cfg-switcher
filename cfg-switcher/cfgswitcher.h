@@ -19,8 +19,8 @@ private:
     GameModel gameModel;
     Settings settings;
     Ui::CfgSwitcher *ui;
-    BYTE CurrentACStatus;
-    BYTE getPowerStatus();
+    PowerState CurrentACStatus;
+    PowerState getPowerState();
     void setPowerStatusLabel();
 
 public:
@@ -29,10 +29,10 @@ public:
     ~CfgSwitcher() override;
     void addGame(Game game);
     void removeGame(QString gameName);
-    bool switchConfigs(int pState, Game &game);
-    bool switchConfigs(int pState);
+    bool switchConfigs(PowerState pState, Game &game);
+    bool switchConfigs(PowerState pState);
     bool switchConfigs();
-    void setConfigs(int pState);
+    void setConfigs(PowerState pState);
     void setStatus(bool status);    
 
 public slots:

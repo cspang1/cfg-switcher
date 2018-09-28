@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <QDir>
 #include "game.h"
+#include "powerstate.h"
 
 class Settings : public QObject
 {
@@ -16,19 +17,24 @@ private:
     QSettings settings;
     bool updateFileStruct();
     inline QString gameCfgPath(Game game) { return CFG_PATH + "\\" + game.ID; }
-    inline QString gameMainPath(Game game) { return gameCfgPath(game) + "\\main"; }
-    inline QString gameBattPath(Game game) { return gameCfgPath(game) + "\\battery"; }
+    inline QString gameCfgPath(Game game, PowerState pState) { return gameCfgPath(game) + (pState == BATTERY ? "\\battery" : "\\main"); }
+    inline QString gameCfgPath(Game game, PowerState pState, QString cfgFile) { return gameCfgPath(game, pState) + "\\" + cfgFile; }
+
 public:
     const QString CFG_PATH = QDir::currentPath() + "\\configs";
     explicit Settings(QObject *parent = nullptr) :
-        QObject(parent), settings(CFG_FILE, CFG_FMT) {}
+        QObject(parent), settings(CFG_FILE, CFG_FMT) {
+        // Verify games in settings have file structs (via updateFileStructs?)
+        // Match xxxCfgSet to files
+        // Match enabled to xxxCfgSets
+    }
     QList<Game> getGames();
     bool addGame(Game game);
     void updateGame(Game game);
     bool removeGame(Game game);
     void enableGame(Game game);
     void disableGame(Game game);
-    bool setGameConfig(int state, Game game);
+    bool setGameConfig(PowerState pState, Game game);
 
 signals:
 

@@ -47,18 +47,9 @@ void Settings::disableGame(Game game) {
     updateGame(game);
 }
 
-bool Settings::setGameConfig(int tgtState, Game game) {
+bool Settings::setGameConfig(PowerState pState, Game game) {
     QFileInfo fileInfo(QFile(game.cfgPath).fileName());
-    QString cfgDest;
-    switch (tgtState) {
-        case 0:
-            cfgDest = gameBattPath(game) + "\\" + fileInfo.fileName();
-            break;
-        case 1:
-            cfgDest = gameMainPath(game) + "\\" + fileInfo.fileName();
-            break;
-    }
-
+    QString cfgDest = gameCfgPath(game, pState, fileInfo.fileName());
     if(QFile::exists(cfgDest))
         QFile::remove(cfgDest);
     if(!QFile::copy(game.cfgPath, cfgDest)) {
@@ -66,7 +57,7 @@ bool Settings::setGameConfig(int tgtState, Game game) {
         return false;
     }
     else
-        tgtState == 0 ? game.battCfgSet = true : game.mainCfgSet = true;
+        pState == BATTERY ? game.battCfgSet = true : game.mainCfgSet = true;
 
 
     updateGame(game);
@@ -82,10 +73,10 @@ bool Settings::updateFileStruct() {
         QString gamePath = gameCfgPath(game);
         gpdCreate.mkpath(gamePath);
         gpdCreate.setPath(gamePath);
-        QString tempPath = gameMainPath(game);
+        QString tempPath = gameCfgPath(game, MAIN);
         gmdCreate.mkpath(tempPath);
         gmdCreate.setPath(tempPath);
-        tempPath = gameBattPath(game);
+        tempPath = gameCfgPath(game, BATTERY);
         gbdCreate.mkpath(tempPath);
         gbdCreate.setPath(tempPath);
         if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists())

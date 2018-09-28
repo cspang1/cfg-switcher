@@ -41,7 +41,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     connect(&gameModel, SIGNAL(setGameBtns(bool)), this, SLOT(setGameBtns(bool)));
 
     // Initialize power status
-    CurrentACStatus = getPowerStatus();
+    CurrentACStatus = getPowerState();
     setPowerStatusLabel();
     switchConfigs();
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
@@ -78,12 +78,10 @@ void CfgSwitcher::removeGame(QString gameName) {
 
 bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
 {
-    BYTE ACLineStatus = getPowerStatus();
-    bool ACStatusChanged = false;
     MSG *msg = static_cast< MSG * >( message );
     if(msg->message == WM_POWERBROADCAST) {
-        ACLineStatus = getPowerStatus();
-        ACStatusChanged = CurrentACStatus != ACLineStatus;
+        PowerState ACLineStatus = getPowerState();
+        bool ACStatusChanged = CurrentACStatus != ACLineStatus;
         CurrentACStatus = ACStatusChanged ? ACLineStatus : CurrentACStatus;
         if (ACStatusChanged) {
             setPowerStatusLabel();
@@ -93,14 +91,14 @@ bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
     return false;
 }
 
-BYTE CfgSwitcher::getPowerStatus() {
+PowerState CfgSwitcher::getPowerState() {
     SYSTEM_POWER_STATUS lpSystemPowerStatus;
     if (!GetSystemPowerStatus(&lpSystemPowerStatus)) {
         QMessageBox::critical(this, tr("Error"), tr("Unable to get system power status"));
         QApplication::exit(EXIT_FAILURE);
     }
 
-    return lpSystemPowerStatus.ACLineStatus;
+    return lpSystemPowerStatus.ACLineStatus == 0 ? BATTERY : MAIN;
 }
 
 
@@ -108,7 +106,7 @@ bool CfgSwitcher::switchConfigs() {
     return switchConfigs(CurrentACStatus);
 }
 
-bool CfgSwitcher::switchConfigs(int pState) {
+bool CfgSwitcher::switchConfigs(PowerState pState) {
     bool success = true;
     for (Game &g : gameModel.getGames())
         if(g.enabled)
@@ -118,7 +116,7 @@ bool CfgSwitcher::switchConfigs(int pState) {
     return success;
 }
 
-bool CfgSwitcher::switchConfigs(int pState, Game &game) {
+bool CfgSwitcher::switchConfigs(PowerState pState, Game &game) {
     QString cfgPath = settings.CFG_PATH;
     QString cfgSrc;
     QString cfgFile;
@@ -169,15 +167,15 @@ CfgSwitcher::~CfgSwitcher()
 
 void CfgSwitcher::on_setMainCfgBtn_clicked()
 {
-    setConfigs(1);
+    setConfigs(MAIN);
 }
 
 void CfgSwitcher::on_setBattCfgBtn_clicked()
 {
-    setConfigs(0);
+    setConfigs(BATTERY);
 }
 
-void CfgSwitcher::setConfigs(int pState) {
+void CfgSwitcher::setConfigs(PowerState pState) {
     QString stateStr = pState == 0 ? tr("battery") : tr("main");
     QList<Qt::CheckState> selects = gameModel.getSelects();
     QList<Game> games = gameModel.getGames();
