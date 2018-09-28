@@ -4,6 +4,7 @@
 
 int main(int argc, char *argv[])
 {
+    qRegisterMetaTypeStreamOperators<Game>("Game");
     QApplication a(argc, argv);
 
     CfgSwitcher w;
