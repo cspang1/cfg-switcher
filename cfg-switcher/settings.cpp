@@ -29,7 +29,12 @@ bool Settings::removeGame(Game game) {
     settings.remove(game.ID);
     settings.endGroup();
 
-    return updateFileStruct();
+    if(!QDir(gameCfgPath(game)).removeRecursively()) {
+        QMessageBox::critical(nullptr, tr("Error"), tr("Unable to remove %1 config files").arg(game.ID));
+        return false;
+    }
+
+    return true;
 }
 
 void Settings::enableGame(Game game) {
@@ -60,15 +65,9 @@ bool Settings::setGameConfig(int tgtState, Game game) {
         QMessageBox::critical(nullptr, tr("Error"), tr("Unable to set %1 config files").arg(game.ID));
         return false;
     }
-    else {
-        switch (tgtState) {
-            case 0:
-                game.battCfgSet = true;
-                break;
-            case 1:
-                game.mainCfgSet = true;
-        }
-    }
+    else
+        tgtState == 0 ? game.battCfgSet = true : game.mainCfgSet = true;
+
 
     updateGame(game);
 
