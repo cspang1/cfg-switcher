@@ -124,9 +124,9 @@ QVariant GameModel::headerData(int section, Qt::Orientation orientation, int rol
                 }
             }
             break;
-        default:
-            return QVariant();
     }
+
+    return QVariant();
 }
 
 bool GameModel::insertRows(int position, int rows, const QModelIndex &) {
