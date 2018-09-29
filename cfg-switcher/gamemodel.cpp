@@ -20,25 +20,27 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
 
     Game game;
     switch(role) {
-    case Qt::DisplayRole:
-        game = games.at(index.row());
-        if(index.column() == 1)
-            return game.ID;
-        else if(index.column() == 2)
-            return game.cfgPath;
-        else if(index.column() == 3)
-            return game.mainCfgSet;
-        else if(index.column() == 4)
-            return game.battCfgSet;
-        else if(index.column() == 5)
-            return game.enabled;
-        else
-            return QVariant();
-    case Qt::CheckStateRole:
-        if (index.column() == 0)
-            return selects.at(index.row());
-        else
-            return QVariant();
+        case Qt::DisplayRole:
+            game = games.at(index.row());
+            switch(index.column()) {
+                case 1:
+                    return game.ID;
+                case 2:
+                    return game.cfgPath;
+                case 3:
+                    return game.mainCfgSet;
+                case 4:
+                    return game.battCfgSet;
+                case 5:
+                    return game.enabled;
+                default:
+                    return QVariant();
+            }
+        case Qt::CheckStateRole:
+            if (index.column() == 0)
+                return selects.at(index.row());
+            else
+                return QVariant();
     }
 
     return QVariant();
@@ -50,45 +52,45 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
 
     Game game;
     switch(role) {
-    case Qt::EditRole:
-        game = games.value(index.row());
-        switch(index.column()) {
-        case 1:
-            game.ID = value.toString();
-            break;
-        case 2:
-            game.cfgPath = value.toString();
-            break;
-        case 3:
-            game.mainCfgSet = value.toBool();
-            break;
-        case 4:
-            game.battCfgSet = value.toBool();
-            break;
-        case 5:
-            game.enabled = value.toBool();
-            break;
+        case Qt::EditRole:
+            game = games.value(index.row());
+            switch(index.column()) {
+                case 1:
+                    game.ID = value.toString();
+                    break;
+                case 2:
+                    game.cfgPath = value.toString();
+                    break;
+                case 3:
+                    game.mainCfgSet = value.toBool();
+                    break;
+                case 4:
+                    game.battCfgSet = value.toBool();
+                    break;
+                case 5:
+                    game.enabled = value.toBool();
+                    break;
+                default:
+                    return false;
+            }
+            games.replace(index.row(), game);
+            emit dataChanged(index, index);
+            return true;
+        case Qt::CheckStateRole:
+            selects.replace(index.row(), qvariant_cast<Qt::CheckState>(value));
+
+            // Check if select all should be unchecked
+            emit setSelectAll(selects.indexOf(Qt::Unchecked) == -1);
+
+            // Check if game buttons should be disabled
+            emit setGameBtns(selects.indexOf(Qt::Checked) != -1);
+
+            // Update table
+            emit dataChanged(index, index);
+
+            return true;
         default:
             return false;
-        }
-        games.replace(index.row(), game);
-        emit dataChanged(index, index);
-        return true;
-    case Qt::CheckStateRole:
-        selects.replace(index.row(), qvariant_cast<Qt::CheckState>(value));
-
-        // Check if select all should be unchecked
-        emit setSelectAll(selects.indexOf(Qt::Unchecked) == -1);
-
-        // Check if game buttons should be disabled
-        emit setGameBtns(selects.indexOf(Qt::Checked) != -1);
-
-        // Update table
-        emit dataChanged(index, index);
-
-        return true;
-    default:
-        return false;
     }
 }
 
@@ -106,25 +108,25 @@ Qt::ItemFlags GameModel::flags(const QModelIndex &index) const {
 
 QVariant GameModel::headerData(int section, Qt::Orientation orientation, int role) const {
     switch(role) {
-    case Qt::DisplayRole:
-        if (orientation == Qt::Horizontal) {
-            switch (section)
-            {
-            case 1:
-                return tr("Game ID");
-            case 2:
-                return tr("Config Path");
-            case 3:
-                return tr("Main Config Set");
-            case 4:
-                return tr("Battery Config Set");
-            case 5:
-                return tr("Enabled");            }
-        }
-        break;
+        case Qt::DisplayRole:
+            if (orientation == Qt::Horizontal) {
+                switch (section) {
+                    case 1:
+                        return tr("Game ID");
+                    case 2:
+                        return tr("Config Path");
+                    case 3:
+                        return tr("Main Config Set");
+                    case 4:
+                        return tr("Battery Config Set");
+                    case 5:
+                        return tr("Enabled");
+                }
+            }
+            break;
+        default:
+            return QVariant();
     }
-
-    return QVariant();
 }
 
 bool GameModel::insertRows(int position, int rows, const QModelIndex &) {
