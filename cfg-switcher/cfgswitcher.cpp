@@ -14,8 +14,7 @@
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
-
-    // Get games manifest
+    // Load games from settings
     qRegisterMetaTypeStreamOperators<Game>("Game");
     QList<Game> games = settings.getGames();
 
@@ -23,11 +22,9 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     ui->setupUi(this);
     setGameBtns(false);
 
-    // Initialize settings and games
+    // Configure game table view model
     for(Game &g : games)
         addGame(g);
-
-    // Configure game table view model
     ui->gamesTableView->setModel(&gameModel);
     CheckboxHeader* header = new CheckboxHeader(Qt::Horizontal, ui->gamesTableView);
     header->setStretchLastSection(true);
@@ -78,7 +75,7 @@ void CfgSwitcher::removeGame(QString gameName) {
 
 bool CfgSwitcher::nativeEventFilter(const QByteArray &, void *message, long *)
 {
-    MSG *msg = static_cast< MSG * >( message );
+    MSG *msg = static_cast<MSG*>(message);
     if(msg->message == WM_POWERBROADCAST) {
         PowerState ACLineStatus = getPowerState();
         bool ACStatusChanged = CurrentACStatus != ACLineStatus;
@@ -108,9 +105,9 @@ bool CfgSwitcher::switchConfigs() {
 
 bool CfgSwitcher::switchConfigs(PowerState pState) {
     bool success = true;
-    for (Game &g : gameModel.getGames())
-        if(g.enabled)
-            if (!switchConfigs(pState, g))
+    for (Game &game : gameModel.getGames())
+        if(game.enabled)
+            if (!switchConfigs(pState, game))
                 success = false;
 
     return success;

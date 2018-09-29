@@ -24,7 +24,7 @@ QString GamePicker::getGamePath() {
 }
 
 void GamePicker::on_cancelAddGameBtn_clicked() {
-    this->reject();
+    reject();
 }
 
 void GamePicker::on_browseGameBtn_clicked() {
@@ -43,7 +43,7 @@ void GamePicker::on_saveGameBtn_clicked() {
     else if(gameExists(getGameName()))
         QMessageBox::information(this, tr("Error"), tr("%1 already exists in configuration").arg(getGameName()), QMessageBox::Ok);
     else
-        this->accept();
+        accept();
 }
 
 bool GamePicker::gameExists(QString game) {

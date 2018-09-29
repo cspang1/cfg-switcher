@@ -59,7 +59,6 @@ bool Settings::setGameConfig(PowerState pState, Game game) {
     else
         pState == BATTERY ? game.battCfgSet = true : game.mainCfgSet = true;
 
-
     updateGame(game);
 
     return true;
