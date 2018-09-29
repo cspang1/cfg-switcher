@@ -117,29 +117,16 @@ bool CfgSwitcher::switchConfigs(PowerState pState) {
 }
 
 bool CfgSwitcher::switchConfigs(PowerState pState, Game &game) {
-    QString cfgPath = settings.CFG_PATH;
-    QString cfgSrc;
-    QString cfgFile;
-
     if (!game.battCfgSet || !game.mainCfgSet) {
         QMessageBox::warning(this, tr("Warning"), tr("One or both %1 config files not set; files won't be switched").arg(game.ID));
         return false;
     }
     QFileInfo cfgFileInfo(QFile(game.cfgPath));
-    cfgFile = cfgFileInfo.fileName();
-    QString filename(cfgFileInfo.fileName());
-    switch (pState) {
-    case 0:
-        cfgSrc = cfgPath + "\\" + game.ID + "\\battery\\" + cfgFile;
-        break;
-    case 1:
-        cfgSrc = cfgPath + "\\" + game.ID + "\\main\\" + cfgFile;
-        break;
-    }
+    QString cfgFile = cfgFileInfo.fileName();
+    QString cfgSrc = settings.gameCfgPath(game, pState, cfgFileInfo.fileName());
 
-    if(QFile::exists(game.cfgPath)) {
+    if(QFile::exists(game.cfgPath))
         QFile::remove(game.cfgPath);
-    }
     if(!QFile::copy(cfgSrc, game.cfgPath)) {
         QMessageBox::critical(this, tr("Error"), tr("Unable to copy %1 config files").arg(game.ID));
         return false;
@@ -149,14 +136,7 @@ bool CfgSwitcher::switchConfigs(PowerState pState, Game &game) {
 }
 
 void CfgSwitcher::setPowerStatusLabel() {
-    switch (CurrentACStatus) {
-        case 0:
-            ui->PowerStatus->setText("UNPLUGGED");
-            break;
-        case 1:
-            ui->PowerStatus->setText("PLUGGED IN");
-            break;
-    }
+    ui->PowerStatus->setText((CurrentACStatus == BATTERY ? "UNPLUGGED" : "PLUGGED IN"));
 }
 
 CfgSwitcher::~CfgSwitcher()
@@ -235,7 +215,6 @@ void CfgSwitcher::on_addGameBtn_clicked()
     if(gamePicker.exec()) {
         gameID = gamePicker.getGameName();
         gamePath = gamePicker.getGamePath();
-
         if(!gameModel.gameExists(gameID)) {
             if(settings.addGame(Game(gameID, gamePath)))
                 addGame(Game(gameID, gamePath));

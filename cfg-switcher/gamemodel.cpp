@@ -3,13 +3,11 @@
 
 GameModel::GameModel(QObject *parent) : QAbstractTableModel(parent) { }
 
-int GameModel::rowCount(const QModelIndex & parent) const {
-    Q_UNUSED(parent);
+int GameModel::rowCount(const QModelIndex &) const {
     return games.size();
 }
 
-int GameModel::columnCount(const QModelIndex & parent) const {
-    Q_UNUSED(parent);
+int GameModel::columnCount(const QModelIndex &) const {
     return NUM_COL;
 }
 
@@ -51,59 +49,59 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
         return false;
 
     Game game;
-    bool state;
     switch(role) {
     case Qt::EditRole:
         game = games.value(index.row());
-
-        if (index.column() == 1)
+        switch(index.column()) {
+        case 1:
             game.ID = value.toString();
-        else if (index.column() == 2)
+            break;
+        case 2:
             game.cfgPath = value.toString();
-        else if (index.column() == 3)
+            break;
+        case 3:
             game.mainCfgSet = value.toBool();
-        else if (index.column() == 4)
+            break;
+        case 4:
             game.battCfgSet = value.toBool();
-        else if (index.column() == 5)
+            break;
+        case 5:
             game.enabled = value.toBool();
-        else
+            break;
+        default:
             return false;
-
+        }
         games.replace(index.row(), game);
         emit dataChanged(index, index);
         return true;
     case Qt::CheckStateRole:
         selects.replace(index.row(), qvariant_cast<Qt::CheckState>(value));
-        state = true;
-        for(Qt::CheckState &s : selects) {
-            if(s == Qt::Unchecked) {
-                state = false;
-                break;
-            }
-        }
 
-        if(selects.indexOf(Qt::Checked) == -1)
-            emit setGameBtns(false);
-        else
-            emit setGameBtns(true);
+        // Check if select all should be unchecked
+        emit setSelectAll(selects.indexOf(Qt::Unchecked) == -1);
 
-        emit setSelectAll(state);
+        // Check if game buttons should be disabled
+        emit setGameBtns(selects.indexOf(Qt::Checked) != -1);
+
+        // Update table
         emit dataChanged(index, index);
 
         return true;
+    default:
+        return false;
     }
-
-    return false;
 }
 
 Qt::ItemFlags GameModel::flags(const QModelIndex &index) const {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
 
-    if(index.column() == 0)
-        return QAbstractTableModel::flags(index) | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled;
-    else
-        return QAbstractTableModel::flags(index);
+    switch(index.column()) {
+        case 0:
+           return QAbstractTableModel::flags(index) | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled;
+        default:
+           return QAbstractTableModel::flags(index);
+    }
 }
 
 QVariant GameModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -129,31 +127,25 @@ QVariant GameModel::headerData(int section, Qt::Orientation orientation, int rol
     return QVariant();
 }
 
-bool GameModel::insertRows(int position, int rows, const QModelIndex &index) {
-    Q_UNUSED(index);
+bool GameModel::insertRows(int position, int rows, const QModelIndex &) {
     beginInsertRows(QModelIndex(), position, position+rows-1);
-
     for (int row=0; row < rows; row++) {
-        Game game("", "", false, false);
+        Game game;
         Qt::CheckState select = Qt::Unchecked;
         games.insert(position, game);
         selects.insert(position, select);
     }
-
     endInsertRows();
     return true;
 }
 
-bool GameModel::removeRows(int position, int rows, const QModelIndex &index) {
-    Q_UNUSED(index);
+bool GameModel::removeRows(int position, int rows, const QModelIndex &) {
     beginRemoveRows(QModelIndex(), position, position+rows-1);
-
     for (int row = 0; row < rows; ++row) {
         selects.removeAt(position);
         games.removeAt(position);
     }
     emit setSelectAll(false);
-
     endRemoveRows();
     return true;
 }

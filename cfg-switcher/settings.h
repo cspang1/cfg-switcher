@@ -16,9 +16,6 @@ private:
     const QString CFG_FILE = "config.ini";
     QSettings settings;
     bool updateFileStruct();
-    inline QString gameCfgPath(Game game) { return CFG_PATH + "\\" + game.ID; }
-    inline QString gameCfgPath(Game game, PowerState pState) { return gameCfgPath(game) + (pState == BATTERY ? "\\battery" : "\\main"); }
-    inline QString gameCfgPath(Game game, PowerState pState, QString cfgFile) { return gameCfgPath(game, pState) + "\\" + cfgFile; }
 
 public:
     const QString CFG_PATH = QDir::currentPath() + "\\configs";
@@ -35,6 +32,9 @@ public:
     void enableGame(Game game);
     void disableGame(Game game);
     bool setGameConfig(PowerState pState, Game game);
+    inline QString gameCfgPath(Game game) { return CFG_PATH + "\\" + game.ID; }
+    inline QString gameCfgPath(Game game, PowerState pState) { return gameCfgPath(game) + (pState == BATTERY ? "\\battery" : "\\main"); }
+    inline QString gameCfgPath(Game game, PowerState pState, QString cfgFile) { return gameCfgPath(game, pState) + "\\" + cfgFile; }
 
 signals:
 

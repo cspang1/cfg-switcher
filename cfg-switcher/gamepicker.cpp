@@ -5,15 +5,13 @@
 
 GamePicker::GamePicker(QList<Game> _games, QWidget *parent) :
     QDialog(parent),
-    games(_games),
-    ui(new Ui::GamePicker)
-{
+    ui(new Ui::GamePicker),
+    games(_games) {
     ui->setupUi(this);
     ui->gamePathLE->setReadOnly(true);
 }
 
-GamePicker::~GamePicker()
-{
+GamePicker::~GamePicker() {
     delete ui;
 }
 
@@ -25,20 +23,17 @@ QString GamePicker::getGamePath() {
     return ui->gamePathLE->text();
 }
 
-void GamePicker::on_cancelAddGameBtn_clicked()
-{
+void GamePicker::on_cancelAddGameBtn_clicked() {
     this->reject();
 }
 
-void GamePicker::on_browseGameBtn_clicked()
-{
+void GamePicker::on_browseGameBtn_clicked() {
     QString fileName = QFileDialog::getOpenFileName(this, ("Select Game Config File"), "", (""));
     if(!fileName.isEmpty())
         ui->gamePathLE->setText(fileName);
 }
 
-void GamePicker::on_saveGameBtn_clicked()
-{
+void GamePicker::on_saveGameBtn_clicked() {
     QString illChars = "< > * : \" / \\ | ?";
     QRegExp re("[<>*:\"\\\\/\\|?]");
     if(re.indexIn(getGameName()) >= 0)
@@ -51,8 +46,7 @@ void GamePicker::on_saveGameBtn_clicked()
         this->accept();
 }
 
-bool GamePicker::gameExists(QString game)
-{
+bool GamePicker::gameExists(QString game) {
     for(Game &g : games)
         if(!game.compare(g.ID))
             return true;
