@@ -8,8 +8,7 @@ class GameModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    QList<Game> games;
-    QList<Qt::CheckState> selects;
+    QList<QPair<Qt::CheckState, Game>> rows;
     const int NUM_COL = 6;
 
 public:

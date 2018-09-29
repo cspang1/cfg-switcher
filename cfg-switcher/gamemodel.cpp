@@ -4,7 +4,7 @@
 GameModel::GameModel(QObject *parent) : QAbstractTableModel(parent) { }
 
 int GameModel::rowCount(const QModelIndex &) const {
-    return games.size();
+    return rows.size();
 }
 
 int GameModel::columnCount(const QModelIndex &) const {
@@ -15,13 +15,13 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid())
         return QVariant();
 
-    if (index.row() >= games.size() || index.row() >= selects.size() || index.row() < 0)
+    if (index.row() >= rows.size() || index.row() < 0)
         return QVariant();
 
     Game game;
     switch(role) {
         case Qt::DisplayRole:
-            game = games.at(index.row());
+            game = rows.at(index.row()).second;
             switch(index.column()) {
                 case 1:
                     return game.ID;
@@ -38,7 +38,7 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
             }
         case Qt::CheckStateRole:
             if (index.column() == 0)
-                return selects.at(index.row());
+                return rows.at(index.row()).first;
             else
                 return QVariant();
     }
@@ -50,10 +50,10 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
     if (!index.isValid())
         return false;
 
-    Game game;
+    Game game = rows.value(index.row()).second;
+    Qt::CheckState state = rows.value(index.row()).first;
     switch(role) {
         case Qt::EditRole:
-            game = games.value(index.row());
             switch(index.column()) {
                 case 1:
                     game.ID = value.toString();
@@ -73,17 +73,17 @@ bool GameModel::setData(const QModelIndex &index, const QVariant &value, int rol
                 default:
                     return false;
             }
-            games.replace(index.row(), game);
+            rows.replace(index.row(), QPair<Qt::CheckState, Game>(state, game));
             emit dataChanged(index, index);
             return true;
         case Qt::CheckStateRole:
-            selects.replace(index.row(), qvariant_cast<Qt::CheckState>(value));
+            rows.replace(index.row(), QPair<Qt::CheckState, Game>(qvariant_cast<Qt::CheckState>(value), game));
 
             // Check if select all should be unchecked
-            emit setSelectAll(selects.indexOf(Qt::Unchecked) == -1);
+            emit setSelectAll(getSelects().indexOf(Qt::Unchecked) == -1);
 
             // Check if game buttons should be disabled
-            emit setGameBtns(selects.indexOf(Qt::Checked) != -1);
+            emit setGameBtns(getSelects().indexOf(Qt::Checked) != -1);
 
             // Update table
             emit dataChanged(index, index);
@@ -129,47 +129,47 @@ QVariant GameModel::headerData(int section, Qt::Orientation orientation, int rol
     return QVariant();
 }
 
-bool GameModel::insertRows(int position, int rows, const QModelIndex &) {
-    beginInsertRows(QModelIndex(), position, position+rows-1);
-    for (int row=0; row < rows; row++) {
-        Game game;
-        Qt::CheckState select = Qt::Unchecked;
-        games.insert(position, game);
-        selects.insert(position, select);
-    }
+bool GameModel::insertRows(int position, int nRows, const QModelIndex &) {
+    beginInsertRows(QModelIndex(), position, position+nRows-1);
+    for (int row=0; row < nRows; row++)
+        rows.insert(position, QPair<Qt::CheckState, Game>(Qt::Unchecked, Game()));
     endInsertRows();
     return true;
 }
 
-bool GameModel::removeRows(int position, int rows, const QModelIndex &) {
-    beginRemoveRows(QModelIndex(), position, position+rows-1);
-    for (int row = 0; row < rows; ++row) {
-        selects.removeAt(position);
-        games.removeAt(position);
-    }
+bool GameModel::removeRows(int position, int nRows, const QModelIndex &) {
+    beginRemoveRows(QModelIndex(), position, position+nRows-1);
+    for (int row = 0; row < nRows; ++row)
+        rows.removeAt(position);
     emit setSelectAll(false);
     endRemoveRows();
     return true;
 }
 
 QList<Game> GameModel::getGames() {
+    QList<Game> games;
+    for(QPair<Qt::CheckState, Game> row : rows)
+        games.push_back(row.second);
     return games;
 }
 
 QList<Qt::CheckState> GameModel::getSelects() {
+    QList<Qt::CheckState> selects;
+    for(QPair<Qt::CheckState, Game> row : rows)
+        selects.push_back(row.first);
     return selects;
 }
 
 void GameModel::selectAll(Qt::CheckState state) {
-    for(int i = 0; i < selects.size(); i++) {
+    for(int i = 0; i < rows.size(); i++) {
         QModelIndex index = this->index(i, 0, QModelIndex());
         setData(index, state, Qt::CheckStateRole);
     }
 }
 
 bool GameModel::gameExists(QString gameID) {
-    for(Game &g : games)
-        if(!gameID.compare(g.ID))
+    for(QPair<Qt::CheckState, Game> row : rows)
+        if(!gameID.compare(row.second.ID))
             return true;
     return false;
 }
