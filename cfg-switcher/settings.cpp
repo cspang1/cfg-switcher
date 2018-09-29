@@ -80,7 +80,7 @@ bool Settings::updateFileStruct() {
         gbdCreate.mkpath(tempPath);
         gbdCreate.setPath(tempPath);
         if (!gpdCreate.exists() || !gmdCreate.exists() || !gbdCreate.exists())
-            QMessageBox::critical(nullptr, tr("Error"), tr("Unable to creat %1 config directories").arg(game.ID));
+            QMessageBox::critical(nullptr, tr("Error"), tr("Unable to create %1 config directories").arg(game.ID));
     }
 
     return true;
