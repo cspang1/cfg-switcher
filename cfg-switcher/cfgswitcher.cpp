@@ -89,20 +89,17 @@ void CfgSwitcher::on_remGames_clicked()
 {
     QList<Qt::CheckState> selected = gameModel.getSelects();
     int index;
-    bool success = true;
     while((index = selected.indexOf(Qt::Checked)) != -1) {
         Game game = gameModel.getGames().at(index);
-        if(settings.removeGame(game))
+        if(settings.removeGame(game)) {
             removeGame(game.ID);
+            QMessageBox::information(this, tr("Success"), tr("Successfully removed %1").arg(game.ID), QMessageBox::Ok);
+        }
         else
-            success = false;
+            QMessageBox::critical(this, tr("Error"), tr("Failed to remove %1").arg(game.ID), QMessageBox::Ok);
         selected = gameModel.getSelects();
     }
     setGameBtns(false);
-    if(!success)
-        QMessageBox::critical(this, tr("Error"), tr("Failed to remove some or all games"), QMessageBox::Ok);
-    else
-        QMessageBox::information(this, tr("Success"), tr("Successfully removed game(s)"), QMessageBox::Ok);
 }
 
 void CfgSwitcher::removeGame(QString gameName) {
@@ -130,25 +127,20 @@ void CfgSwitcher::setConfigs(PowerState pState) {
     QString stateStr = pState == 0 ? tr("battery") : tr("main");
     QList<Qt::CheckState> selects = gameModel.getSelects();
     QList<Game> games = gameModel.getGames();
-    bool success = true;
     for(int row = 0; row < selects.size(); row++) {
         if(selects.at(row) == Qt::Checked) {
             if(!settings.setGameConfig(pState, games.at(row))) {
                 QMessageBox::critical(this, tr("Error"), tr("Unable to set %1 configuration files").arg(stateStr));
-                success = false;
             }
-            int col = pState == 0 ? 4 : 3;
-            QModelIndex index = gameModel.index(row, col, QModelIndex());
-            gameModel.setData(index, true, Qt::EditRole);
+            else {
+                int col = pState == 0 ? 4 : 3;
+                QModelIndex index = gameModel.index(row, col, QModelIndex());
+                gameModel.setData(index, true, Qt::EditRole);
+                QMessageBox::information(this, tr("Success"), tr("Successfully set %1 config files for %2").arg(stateStr).arg(games.at(row).ID), QMessageBox::Ok);
+            }
         }
     }
-
     gameModel.selectAll(Qt::Unchecked);
-    if(success)
-        QMessageBox::information(this, tr("Success"), tr("Successfully set config files for %1 state").arg(stateStr), QMessageBox::Ok);
-    else
-        QMessageBox::information(this, tr("Error"), tr("Unable to set some or all config files"), QMessageBox::Ok);
-
 }
 
 void CfgSwitcher::on_enableBtn_clicked() {
@@ -160,9 +152,9 @@ void CfgSwitcher::on_disableBtn_clicked() {
 }
 
 void CfgSwitcher::setStatus(bool status) {
+    QString stateStr = status ? tr("enabled") : tr("disabled");
     QList<Qt::CheckState> selects = gameModel.getSelects();
     QList<Game> games = gameModel.getGames();
-    bool success = true;
     for(int row = 0; row < selects.size(); row++) {
         if(selects.at(row) == Qt::Checked) {
             Game game = games.at(row);
@@ -170,7 +162,6 @@ void CfgSwitcher::setStatus(bool status) {
                 continue;
             else if(status && (!game.battCfgSet || !game.mainCfgSet)) {
                 QMessageBox::information(this, tr("Error"), tr("%1 config(s) unset; unable to enable switching").arg(game.ID), QMessageBox::Ok);
-                success = false;
             }
             else {
                 status ? settings.enableGame(game) : settings.disableGame(game);
@@ -178,17 +169,11 @@ void CfgSwitcher::setStatus(bool status) {
                 gameModel.setData(index, status, Qt::EditRole);
                 if(status)
                     switchConfigs(CurrentACStatus, game);
+                QMessageBox::information(this, tr("Success"), tr("Successfully %1 %2").arg(stateStr).arg(game.ID), QMessageBox::Ok);
             }
         }
     }
-
     gameModel.selectAll(Qt::Unchecked);
-    QString stateStr = status ? tr("enabled") : tr("disabled");
-    if(!success)
-        QMessageBox::critical(this, tr("Error"), tr("Failed to enable some or all games"), QMessageBox::Ok);
-    else
-        QMessageBox::information(this, tr("Success"), tr("Successfully %1 game(s)").arg(stateStr), QMessageBox::Ok);
-
 }
 
 void CfgSwitcher::on_quitButton_clicked()
