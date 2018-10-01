@@ -84,3 +84,7 @@ bool Settings::updateFileStruct() {
 
     return true;
 }
+
+bool Settings::switchable(Game game) {
+    return game.mainCfgSet && game.battCfgSet;
+}

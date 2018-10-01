@@ -32,6 +32,7 @@ public:
     void enableGame(Game game);
     void disableGame(Game game);
     bool setGameConfig(PowerState pState, Game game);
+    bool switchable(Game game);
     inline QString gameCfgPath(Game game) { return CFG_PATH + "\\" + game.ID; }
     inline QString gameCfgPath(Game game, PowerState pState) { return gameCfgPath(game) + (pState == BATTERY ? "\\battery" : "\\main"); }
     inline QString gameCfgPath(Game game, PowerState pState, QString cfgFile) { return gameCfgPath(game, pState) + "\\" + cfgFile; }

@@ -245,12 +245,11 @@ bool CfgSwitcher::switchConfigs(PowerState pState) {
 }
 
 bool CfgSwitcher::switchConfigs(PowerState pState, Game &game) {
-    if (!game.battCfgSet || !game.mainCfgSet) {
+    if (!settings.switchable(game)) {
         QMessageBox::warning(this, tr("Warning"), tr("One or both %1 config files not set; files won't be switched").arg(game.ID));
         return false;
     }
     QFileInfo cfgFileInfo(QFile(game.cfgPath));
-    QString cfgFile = cfgFileInfo.fileName();
     QString cfgSrc = settings.gameCfgPath(game, pState, cfgFileInfo.fileName());
 
     if(QFile::exists(game.cfgPath))
