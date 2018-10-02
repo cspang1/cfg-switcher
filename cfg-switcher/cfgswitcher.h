@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QAbstractNativeEventFilter>
 #include <Windows.h>
+#include <QSystemTrayIcon>
 #include "settings.h"
 #include "gamemodel.h"
 #include "gameheader.h"
@@ -22,6 +23,7 @@ private:
     PowerState CurrentACStatus;
     PowerState getPowerState();
     void setPowerStatusLabel();
+    void createTrayIcon();
 
 public:
     explicit CfgSwitcher(QWidget *parent = nullptr);
@@ -33,7 +35,8 @@ public:
     bool switchConfigs(PowerState pState);
     bool switchConfigs();
     void setConfigs(PowerState pState);
-    void setStatus(bool status);    
+    void setStatus(bool status);
+    void changeEvent(QEvent* e) override;
 
 public slots:
     void setGameBtns(bool state);
@@ -46,6 +49,7 @@ private slots:
     void on_remGames_clicked();
     void on_enableBtn_clicked();
     void on_disableBtn_clicked();
+    void onShowHide(QSystemTrayIcon::ActivationReason reason = QSystemTrayIcon::DoubleClick);
 };
 
 #endif // CFGSWITCHER_H

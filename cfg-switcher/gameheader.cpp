@@ -4,7 +4,7 @@
 #include <QOperatingSystemVersion>
 #include <QPainter>
 
-GameHeader::GameHeader(Qt::Orientation orientation, QWidget* parent /*= 0*/)
+GameHeader::GameHeader(Qt::Orientation orientation, QWidget* parent)
     : QHeaderView(orientation, parent), isChecked_(false)
 {
     if(QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10){

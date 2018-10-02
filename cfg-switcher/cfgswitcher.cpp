@@ -5,6 +5,8 @@
 #include <QSettings>
 #include <QDebug>
 #include <Windows.h>
+#include <QAction>
+#include <QMenu>
 #include "cfgswitcher.h"
 #include "ui_cfgswitcher.h"
 #include "gamemodel.h"
@@ -36,6 +38,19 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     connect(header, SIGNAL(checkBoxClicked(Qt::CheckState)), &gameModel, SLOT(selectAll(Qt::CheckState)));
     connect(&gameModel, SIGNAL(setSelectAll(bool)), header, SLOT(setSelectAll(bool)));
     connect(&gameModel, SIGNAL(setGameBtns(bool)), this, SLOT(setGameBtns(bool)));
+
+    // Create tray icon
+    QSystemTrayIcon* m_tray_icon = new QSystemTrayIcon(QIcon(":/icons/resources/cfg_switcher.ico"), this);
+    connect(m_tray_icon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onShowHide(QSystemTrayIcon::ActivationReason)));
+    QAction *quit_action = new QAction("Exit", m_tray_icon);
+    connect(quit_action, SIGNAL(triggered()), this, SLOT(on_quitButton_clicked()));
+    QAction *hide_action = new QAction("Show/Hide", m_tray_icon);
+    connect(hide_action, SIGNAL(triggered()), this, SLOT(onShowHide()));
+    QMenu *tray_icon_menu = new QMenu;
+    tray_icon_menu->addAction(hide_action);
+    tray_icon_menu->addAction(quit_action);
+    m_tray_icon->setContextMenu(tray_icon_menu);
+    m_tray_icon->show();
 
     // Initialize power status
     CurrentACStatus = getPowerState();
@@ -291,4 +306,37 @@ bool CfgSwitcher::switchConfigs(PowerState pState, Game &game) {
 
 void CfgSwitcher::setPowerStatusLabel() {
     ui->PowerStatus->setText((CurrentACStatus == BATTERY ? "UNPLUGGED" : "PLUGGED IN"));
+}
+
+void CfgSwitcher::changeEvent(QEvent* e)
+{
+    switch (e->type())
+    {
+        case QEvent::LanguageChange:
+            this->ui->retranslateUi(this);
+            break;
+        case QEvent::WindowStateChange:
+            {
+                if (this->windowState() & Qt::WindowMinimized)
+                        QTimer::singleShot(0, this, SLOT(hide()));
+                break;
+            }
+        default:
+            break;
+    }
+
+    QWidget::changeEvent(e);
+}
+
+void CfgSwitcher::onShowHide(QSystemTrayIcon::ActivationReason reason) {
+   if(reason != QSystemTrayIcon::DoubleClick)
+       return;
+
+   if(isVisible())
+       hide();
+   else {
+       show();
+       raise();
+       setFocus();
+   }
 }

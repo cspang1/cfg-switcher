@@ -6,5 +6,6 @@
         <file>resources/ui/icons/main.png</file>
         <file>resources/ui/icons/disabled.png</file>
         <file>resources/ui/icons/enabled.png</file>
+        <file>resources/cfg_switcher.ico</file>
     </qresource>
 </RCC>
