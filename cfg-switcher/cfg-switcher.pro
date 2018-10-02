@@ -31,17 +31,17 @@ SOURCES += \
     main.cpp \
     gamemodel.cpp \
     gamepicker.cpp \
-    checkboxheader.cpp \
-    settings.cpp
+    settings.cpp \
+    gameheader.cpp
 
 HEADERS += \
     cfgswitcher.h \
     game.h \
     gamemodel.h \
     gamepicker.h \
-    checkboxheader.h \
     settings.h \
-    powerstate.h
+    powerstate.h \
+    gameheader.h
 
 FORMS += \
         cfgswitcher.ui \

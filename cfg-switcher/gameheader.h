@@ -1,14 +1,14 @@
-#ifndef CHECKBOXHEADER_H
-#define CHECKBOXHEADER_H
+#ifndef GameHeader_H
+#define GameHeader_H
 
 #include <QHeaderView>
 
-class CheckboxHeader : public QHeaderView
+class GameHeader : public QHeaderView
 {
     Q_OBJECT
 
 public:
-    CheckboxHeader(Qt::Orientation orientation, QWidget* parent = nullptr);
+    GameHeader(Qt::Orientation orientation, QWidget* parent = nullptr);
     bool isChecked() const { return isChecked_; }
     void setIsChecked(bool val);
 
@@ -27,4 +27,4 @@ private:
     void redrawCheckBox();
 };
 
-#endif // CHECKBOXHEADER_H
+#endif // GameHeader_H

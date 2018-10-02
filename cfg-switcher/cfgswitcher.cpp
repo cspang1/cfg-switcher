@@ -10,7 +10,7 @@
 #include "gamemodel.h"
 #include "gamepicker.h"
 #include "game.h"
-#include "checkboxheader.h"
+#include "gameheader.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
@@ -26,7 +26,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     for(Game &g : games)
         addGame(g);
     ui->gamesTableView->setModel(&gameModel);
-    CheckboxHeader* header = new CheckboxHeader(Qt::Horizontal, ui->gamesTableView);
+    GameHeader* header = new GameHeader(Qt::Horizontal, ui->gamesTableView);
     header->setStretchLastSection(true);
     ui->gamesTableView->setHorizontalHeader(header);
     ui->gamesTableView->resizeColumnToContents(0);

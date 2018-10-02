@@ -6,7 +6,7 @@
 #include <Windows.h>
 #include "settings.h"
 #include "gamemodel.h"
-#include "checkboxheader.h"
+#include "gameheader.h"
 
 namespace Ui {
 class CfgSwitcher;

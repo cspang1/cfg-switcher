@@ -1,4 +1,5 @@
 #include <QMessageBox>
+#include <QTableView>
 #include "gamemodel.h"
 
 GameModel::GameModel(QObject *parent) : QAbstractTableModel(parent) { }
@@ -48,7 +49,6 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
                 case 5:
                     return game.enabled ? valid : invalid;
             }
-
             break;
     }
 
