@@ -19,6 +19,10 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
         return QVariant();
 
     Game game;
+    QPixmap valid(":/icons/resources/ui/icons/enabled.png");
+    valid = valid.scaled(QSize(24, 24), Qt::KeepAspectRatio);
+    QPixmap invalid(":/icons/resources/ui/icons/disabled.png");
+    invalid = invalid.scaled(QSize(24, 24), Qt::KeepAspectRatio);
     switch(role) {
         case Qt::DisplayRole:
             game = rows.at(index.row()).second;
@@ -27,20 +31,25 @@ QVariant GameModel::data(const QModelIndex &index, int role) const {
                     return game.ID;
                 case 2:
                     return game.cfgPath;
-                case 3:
-                    return game.mainCfgSet;
-                case 4:
-                    return game.battCfgSet;
-                case 5:
-                    return game.enabled;
                 default:
                     return QVariant();
             }
         case Qt::CheckStateRole:
             if (index.column() == 0)
                 return rows.at(index.row()).first;
-            else
-                return QVariant();
+            break;
+        case Qt::DecorationRole:
+            game = rows.at(index.row()).second;
+            switch(index.column()) {
+                case 3:
+                    return game.mainCfgSet ? valid : invalid;
+                case 4:
+                    return game.battCfgSet ? valid : invalid;
+                case 5:
+                    return game.enabled ? valid : invalid;
+            }
+
+            break;
     }
 
     return QVariant();
