@@ -32,7 +32,8 @@ SOURCES += \
     gamemodel.cpp \
     gamepicker.cpp \
     settings.cpp \
-    gameheader.cpp
+    gameheader.cpp \
+    checkboxdelegate.cpp
 
 HEADERS += \
     cfgswitcher.h \
@@ -41,7 +42,8 @@ HEADERS += \
     gamepicker.h \
     settings.h \
     powerstate.h \
-    gameheader.h
+    gameheader.h \
+    checkboxdelegate.h
 
 FORMS += \
         cfgswitcher.ui \
