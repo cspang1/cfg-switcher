@@ -41,6 +41,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
 
     // Create tray icon
     QSystemTrayIcon* m_tray_icon = new QSystemTrayIcon(QIcon(":/icons/resources/cfg_switcher.ico"), this);
+    m_tray_icon->setToolTip("Config Switcher");
     connect(m_tray_icon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onShowHide(QSystemTrayIcon::ActivationReason)));
     QAction *quit_action = new QAction("Exit", m_tray_icon);
     connect(quit_action, SIGNAL(triggered()), this, SLOT(on_quitButton_clicked()));
