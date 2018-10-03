@@ -24,6 +24,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     // Initialize UI
     ui->setupUi(this);
     setGameBtns(false);
+    setFixedSize(600, 400);
 
     // Configure game table view model
     for(Game &g : games)
