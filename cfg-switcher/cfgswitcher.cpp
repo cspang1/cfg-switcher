@@ -25,6 +25,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     ui->setupUi(this);
     setGameBtns(false);
     setFixedSize(600, 400);
+    setWindowFlags(this->windowFlags() |= Qt::MSWindowsFixedSizeDialogHint);
 
     // Configure game table view model
     for(Game &g : games)
