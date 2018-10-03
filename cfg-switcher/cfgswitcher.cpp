@@ -13,6 +13,7 @@
 #include "gamepicker.h"
 #include "game.h"
 #include "gameheader.h"
+#include "checkboxdelegate.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
@@ -31,8 +32,19 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     GameHeader* header = new GameHeader(Qt::Horizontal, ui->gamesTableView);
     header->setStretchLastSection(true);
     ui->gamesTableView->setHorizontalHeader(header);
-    ui->gamesTableView->resizeColumnToContents(0);
-    ui->gamesTableView->resizeColumnToContents(1);
+    for(int i = 0; i < gameModel.columnCount(); i++)
+        if(i != 2)
+            ui->gamesTableView->resizeColumnToContents(i);
+    ui->gamesTableView->setItemDelegate(new CheckboxDelegate());
+    ui->gamesTableView->setFocusPolicy(Qt::NoFocus);
+    QPalette palette = ui->gamesTableView->palette();
+    palette.setBrush(QPalette::Highlight,QBrush(Qt::white));
+    palette.setBrush(QPalette::HighlightedText,QBrush(Qt::black));
+    ui->gamesTableView->setPalette(palette);
+    header->setSectionResizeMode(0, QHeaderView::Fixed);
+    header->setSectionResizeMode(3, QHeaderView::Fixed);
+    header->setSectionResizeMode(4, QHeaderView::Fixed);
+    header->setSectionResizeMode(5, QHeaderView::Fixed);
 
     // Configure signal/slot connections
     connect(header, SIGNAL(checkBoxClicked(Qt::CheckState)), &gameModel, SLOT(selectAll(Qt::CheckState)));
