@@ -44,6 +44,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     header->setSectionResizeMode(3, QHeaderView::Fixed);
     header->setSectionResizeMode(4, QHeaderView::Fixed);
     header->setSectionResizeMode(5, QHeaderView::Fixed);
+    ui->gamesTableView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
     // Configure signal/slot connections
     connect(header, SIGNAL(checkBoxClicked(Qt::CheckState)), &gameModel, SLOT(selectAll(Qt::CheckState)));
