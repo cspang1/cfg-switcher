@@ -5,29 +5,9 @@
 #include <QPainter>
 
 GameHeader::GameHeader(Qt::Orientation orientation, QWidget* parent)
-    : QHeaderView(orientation, parent), isChecked_(false)
-{
-    if(QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10){
-        setStyleSheet(
-            "QHeaderView::section{"
-                "border-top:0px solid #D8D8D8;"
-                "border-left:0px solid #D8D8D8;"
-                "border-right:1px solid #D8D8D8;"
-                "border-bottom: 1px solid #D8D8D8;"
-                "background-color:white;"
-                "padding:4px;"
-            "}"
-            "QTableCornerButton::section{"
-                "border-top:0px solid #D8D8D8;"
-                "border-left:0px solid #D8D8D8;"
-                "border-right:1px solid #D8D8D8;"
-                "border-bottom: 1px solid #D8D8D8;"
-                "background-color:white;"
-            "}");}
-}
+    : QHeaderView(orientation, parent), isChecked_(false) { }
 
-void GameHeader::paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const
-{
+void GameHeader::paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const {
     painter->save();
     QHeaderView::paintSection(painter, rect, logicalIndex);
     painter->restore();
@@ -60,8 +40,7 @@ void GameHeader::paintSection(QPainter* painter, const QRect& rect, int logicalI
 
 }
 
-void GameHeader::mouseReleaseEvent(QMouseEvent* event)
-{
+void GameHeader::mouseReleaseEvent(QMouseEvent* event) {
     if(logicalIndexAt(event->pos()) == 0) {
         setIsChecked(!isChecked());
         if(isChecked())
@@ -71,13 +50,11 @@ void GameHeader::mouseReleaseEvent(QMouseEvent* event)
     }
 }
 
-void GameHeader::redrawCheckBox()
-{
+void GameHeader::redrawCheckBox() {
     viewport()->update();
 }
 
-void GameHeader::setIsChecked(bool val)
-{
+void GameHeader::setIsChecked(bool val) {
     if (isChecked_ != val)
     {
         isChecked_ = val;
