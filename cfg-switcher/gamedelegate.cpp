@@ -1,10 +1,12 @@
 #include <QApplication>
 #include <QMouseEvent>
-#include "checkboxdelegate.h"
+#include <QPainter>
+#include "gamedelegate.h"
 
-void CheckboxDelegate::paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const {
+void GameDelegate::paint (QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const {
+    Q_ASSERT(index.isValid());
+
     QStyleOptionViewItem viewItemOption(option);
-
     if (index.column() == 0) {
         const int textMargin = QApplication::style()->pixelMetric(QStyle::PM_FocusFrameHMargin) + 1;
         QRect newRect = QStyle::alignedRect(option.direction, Qt::AlignCenter,
@@ -12,11 +14,27 @@ void CheckboxDelegate::paint ( QPainter * painter, const QStyleOptionViewItem & 
                                             QRect(option.rect.x() + textMargin, option.rect.y(),
                                                   option.rect.width() - (2 * textMargin), option.rect.height()));
         viewItemOption.rect = newRect;
+        QStyledItemDelegate::paint(painter, viewItemOption, index);
     }
-    QStyledItemDelegate::paint(painter, viewItemOption, index);
+    else if(index.column() > 2) {
+        QPixmap pixmap = qvariant_cast<QPixmap>(index.model()->data(index, Qt::DecorationRole));
+        pixmap = pixmap.scaled(QSize(24, 24), Qt::KeepAspectRatio);;
+
+       // Position our pixmap
+       const int x = option.rect.center().x() - pixmap.rect().width() / 2;
+       const int y = option.rect.center().y() - pixmap.rect().height() / 2;
+
+       if (option.state & QStyle::State_Selected) {
+           painter->fillRect(option.rect, option.palette.highlight());
+       }
+
+       painter->drawPixmap(QRect(x, y, pixmap.rect().width(), pixmap.rect().height()), pixmap);
+    }
+    else
+        QStyledItemDelegate::paint(painter, viewItemOption, index);
 }
 
-bool CheckboxDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index) {
+bool GameDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index) {
     Q_ASSERT(event);
     Q_ASSERT(model);
 

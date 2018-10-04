@@ -1,19 +1,16 @@
-#include <QAbstractEventDispatcher>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QTimer>
-#include <QSettings>
-#include <QDebug>
-#include <Windows.h>
 #include <QAction>
 #include <QMenu>
+#include <QMessageBox>
+#include <Windows.h>
+#include <QAbstractEventDispatcher>
+#include <QTimer>
 #include "cfgswitcher.h"
 #include "ui_cfgswitcher.h"
 #include "gamemodel.h"
 #include "gamepicker.h"
 #include "game.h"
 #include "gameheader.h"
-#include "checkboxdelegate.h"
+#include "gamedelegate.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
     QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
@@ -35,7 +32,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     for(int i = 0; i < gameModel.columnCount(); i++)
         if(i != 2)
             ui->gamesTableView->resizeColumnToContents(i);
-    ui->gamesTableView->setItemDelegate(new CheckboxDelegate());
+    ui->gamesTableView->setItemDelegate(new GameDelegate());
     ui->gamesTableView->setFocusPolicy(Qt::NoFocus);
     QPalette palette = ui->gamesTableView->palette();
     palette.setBrush(QPalette::Highlight,QBrush(Qt::white));

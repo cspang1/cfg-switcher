@@ -1,14 +1,14 @@
-#ifndef CHECKBOXDELEGATE_H
-#define CHECKBOXDELEGATE_H
+#ifndef GameDelegate_H
+#define GameDelegate_H
 
 #include <QStyledItemDelegate>
 
-class CheckboxDelegate : public QStyledItemDelegate
+class GameDelegate : public QStyledItemDelegate
 {
         public:
-            CheckboxDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
+            GameDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
             void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;
             virtual bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index);
         };
 
-#endif // CHECKBOXDELEGATE_H
+#endif // GameDelegate_H
