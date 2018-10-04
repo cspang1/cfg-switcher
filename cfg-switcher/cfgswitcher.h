@@ -44,7 +44,7 @@ public slots:
 private slots:
     void on_setMainCfgBtn_clicked();
     void on_setBattCfgBtn_clicked();
-    void on_quitButton_clicked();
+    void exit();
     void on_addGameBtn_clicked();
     void on_remGames_clicked();
     void on_enableBtn_clicked();

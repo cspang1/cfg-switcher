@@ -56,7 +56,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     m_tray_icon->setToolTip("Config Switcher");
     connect(m_tray_icon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onShowHide(QSystemTrayIcon::ActivationReason)));
     QAction *quit_action = new QAction("Exit", m_tray_icon);
-    connect(quit_action, SIGNAL(triggered()), this, SLOT(on_quitButton_clicked()));
+    connect(quit_action, SIGNAL(triggered()), this, SLOT(exit()));
     QAction *hide_action = new QAction("Show/Hide", m_tray_icon);
     connect(hide_action, SIGNAL(triggered()), this, SLOT(onShowHide()));
     QMenu *tray_icon_menu = new QMenu;
@@ -165,6 +165,10 @@ void CfgSwitcher::on_setBattCfgBtn_clicked()
     setConfigs(BATTERY);
 }
 
+void CfgSwitcher::exit() {
+    QApplication::quit();
+}
+
 void CfgSwitcher::setConfigs(PowerState pState) {
     QList<Game> success, fail;
     QString stateStr = pState == 0 ? tr("battery") : tr("main");
@@ -244,11 +248,6 @@ void CfgSwitcher::setStatus(bool status) {
             resStr += g.ID + "\t";
         QMessageBox::critical(this, tr("Error"), tr("Unable to enable switching; config(s) unset for:\n%2").arg(resStr), QMessageBox::Ok);
     }
-}
-
-void CfgSwitcher::on_quitButton_clicked()
-{
-    QCoreApplication::quit();
 }
 
 void CfgSwitcher::setGameBtns(bool state) {
