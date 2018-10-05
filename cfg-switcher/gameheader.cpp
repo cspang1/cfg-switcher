@@ -14,7 +14,7 @@ void GameHeader::paintSection(QPainter* painter, const QRect& rect, int logicalI
     QStyleOptionButton option;
     switch(logicalIndex) {
         case 0:
-            option.rect = QRect(14,10,16,16);
+            option.rect = QRect(15,10,16,16);
             option.state = QStyle::State_Enabled | QStyle::State_Active;
             if (isChecked_)
                 option.state |= QStyle::State_On;

@@ -21,7 +21,7 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     // Initialize UI
     ui->setupUi(this);
     setGameBtns(false);
-    setFixedSize(600, 400);
+    setFixedSize(650, 450);
     setWindowFlags(this->windowFlags() |= Qt::MSWindowsFixedSizeDialogHint);
 
     // Configure game table view model
@@ -347,8 +347,8 @@ void CfgSwitcher::onShowHide(QSystemTrayIcon::ActivationReason reason) {
    if(isVisible())
        hide();
    else {
-       show();
        raise();
+       showNormal();
        setFocus();
    }
 }
