@@ -23,12 +23,6 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     setGameBtns(false);
     setFixedSize(650, 450);
     setWindowFlags(this->windowFlags() |= Qt::MSWindowsFixedSizeDialogHint);
-    if(settings.getMin()) {
-        showMinimized();
-        ui->startMinCB->setCheckState(Qt::Checked);
-    }
-    if(settings.getRunStart())
-        ui->runStartCB->setCheckState(Qt::Checked);
 
     // Configure game table view model
     for(Game &g : games)
@@ -76,6 +70,14 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     setPowerStatusLabel();
     switchConfigs();
     QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
+
+    // React to settings
+    if(settings.getMin()) {
+        showMinimized();
+        ui->startMinCB->setCheckState(Qt::Checked);
+    }
+    if(settings.getRunStart())
+        ui->runStartCB->setCheckState(Qt::Checked);
 }
 
 CfgSwitcher::~CfgSwitcher()
