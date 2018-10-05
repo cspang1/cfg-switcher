@@ -13,7 +13,7 @@
 #include "gamedelegate.h"
 
 CfgSwitcher::CfgSwitcher(QWidget *parent) :
-    QWidget(parent), gameModel(parent), ui(new Ui::CfgSwitcher) {
+    QWidget(parent), gameModel(parent), settings(this), ui(new Ui::CfgSwitcher) {
     // Load games from settings
     qRegisterMetaTypeStreamOperators<Game>("Game");
     QList<Game> games = settings.getGames();
@@ -23,6 +23,12 @@ CfgSwitcher::CfgSwitcher(QWidget *parent) :
     setGameBtns(false);
     setFixedSize(650, 450);
     setWindowFlags(this->windowFlags() |= Qt::MSWindowsFixedSizeDialogHint);
+    if(settings.getMin()) {
+        showMinimized();
+        ui->startMinCB->setCheckState(Qt::Checked);
+    }
+    if(settings.getRunStart())
+        ui->runStartCB->setCheckState(Qt::Checked);
 
     // Configure game table view model
     for(Game &g : games)
@@ -351,4 +357,18 @@ void CfgSwitcher::onShowHide(QSystemTrayIcon::ActivationReason reason) {
        showNormal();
        setFocus();
    }
+}
+
+void CfgSwitcher::on_startMinCB_stateChanged(int state) {
+    if(state == Qt::Checked)
+        settings.setMin(true);
+    else
+        settings.setMin(false);
+}
+
+void CfgSwitcher::on_runStartCB_stateChanged(int state) {
+    if(state == Qt::Checked)
+        settings.setRunStart(true);
+    else
+        settings.setRunStart(false);
 }

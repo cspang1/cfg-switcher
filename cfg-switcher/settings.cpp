@@ -1,5 +1,21 @@
 #include <QMessageBox>
+#include <QCoreApplication>
+#include <QStandardPaths>
+#include "cfgswitcher.h"
 #include "settings.h"
+
+Settings::Settings(QObject *parent) :
+       QObject(parent), settings(CFG_FILE, CFG_FMT) {
+    // Check start minimized/start at run
+    if(!QFileInfo::exists(CFG_FILE) || !QFileInfo(CFG_FILE).isFile()) {
+        setMin(false);
+        setRunStart(false);
+    }
+
+    // Verify games in settings have file structs (via updateFileStructs?)
+    // Match xxxCfgSet to files
+    // Match enabled to xxxCfgSets
+}
 
 QList<Game> Settings::getGames() {
     QList<Game> games;
@@ -11,6 +27,45 @@ QList<Game> Settings::getGames() {
     settings.endGroup();
     return games;
 }
+
+void Settings::setMin(bool min) {
+    settings.beginGroup(SET_GRP);
+    settings.setValue(MIN_SET, min);
+    settings.endGroup();
+}
+
+void Settings::setRunStart(bool start) {
+    settings.beginGroup(SET_GRP);
+    settings.setValue(RUN_SET, start);
+    settings.endGroup();
+    QFileInfo fileInfo(QCoreApplication::applicationFilePath());
+    QString startupFilePath =
+            QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + QDir::separator()
+            + "Startup" + QDir::separator()
+            + fileInfo.completeBaseName() + ".lnk";
+    if(start)
+        QFile::link(
+                QCoreApplication::applicationFilePath(),
+                startupFilePath
+                );
+    else
+        QFile(startupFilePath).remove();
+}
+
+bool Settings::getMin() {
+    settings.beginGroup(SET_GRP);
+    QVariant m = settings.value(MIN_SET);
+    settings.endGroup();
+    return m.value<bool>();
+}
+
+bool Settings::getRunStart() {
+    settings.beginGroup(SET_GRP);
+    QVariant s = settings.value(RUN_SET);
+    settings.endGroup();
+    return s.value<bool>();
+}
+
 
 bool Settings::addGame(Game game) {
     updateGame(game);

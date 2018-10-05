@@ -50,6 +50,8 @@ private slots:
     void on_enableBtn_clicked();
     void on_disableBtn_clicked();
     void onShowHide(QSystemTrayIcon::ActivationReason reason = QSystemTrayIcon::DoubleClick);
+    void on_startMinCB_stateChanged(int arg1);
+    void on_runStartCB_stateChanged(int arg1);
 };
 
 #endif // CFGSWITCHER_H
